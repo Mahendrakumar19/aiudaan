@@ -34,36 +34,40 @@ export default function Home() {
 
   const tracks = [
     {
-      title: t('courses.aiTools'),
-      desc: t('home.benefit1'),
-      icon: "🏗️",
-      build: "AI SaaS App",
-      longDesc: t('home.track1Long'),
-      highlights: [t('home.highlight1'), t('home.highlight2'), t('home.highlight3')]
-    },
-    {
       title: t('courses.filmmaking'),
-      desc: t('home.benefit2'),
+      desc: "AI-Powered Films & Talking Avatars",
       icon: "🎬",
-      build: "Avatar Video",
-      longDesc: t('home.track2Long'),
-      highlights: [t('home.highlight4'), t('home.highlight5'), t('home.highlight6')]
+      build: "CGI Avatar Film",
+      longDesc: t('home.track1Long'),
+      highlights: [t('home.highlight1'), t('home.highlight2'), t('home.highlight3')],
+      tools: t('home.track1Tools')
     },
     {
-      title: t('home.benefit3'),
-      desc: t('home.benefit3'),
-      icon: "⚙️",
-      build: "Business Workflow",
-      longDesc: t('home.track3Long'),
-      highlights: [t('home.highlight7'), t('home.highlight8'), t('home.highlight9')]
+      title: "SaaS Web Development",
+      desc: "Build & Deploy Full-stack AI Apps",
+      icon: "🏗️",
+      build: "Live SaaS Product",
+      longDesc: t('home.track2Long'),
+      highlights: [t('home.highlight4'), t('home.highlight5'), t('home.highlight6')],
+      tools: t('home.track2Tools')
     },
     {
       title: t('courses.digitalMarketing'),
-      desc: t('home.benefit4'),
+      desc: "Master Social Media & Content Automation",
       icon: "📈",
-      build: "Marketing Plan",
+      build: "Auto-Marketing Engine",
+      longDesc: t('home.track3Long'),
+      highlights: [t('home.highlight7'), t('home.highlight8'), t('home.highlight9')],
+      tools: t('home.track3Tools')
+    },
+    {
+      title: "Prompt Engineering",
+      desc: "Workflow Automation & Core Prompting",
+      icon: "⚙️",
+      build: "Autonomous Workflow",
       longDesc: t('home.track4Long'),
-      highlights: [t('home.highlight10'), t('home.highlight11'), t('home.highlight12')]
+      highlights: [t('home.highlight10'), t('home.highlight11'), t('home.highlight12')],
+      tools: t('home.track4Tools')
     }
   ]
 
@@ -82,7 +86,6 @@ export default function Home() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8 text-sm border-brand-blue/30"
         >
           <span className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse" />
@@ -92,7 +95,7 @@ export default function Home() {
         <motion.h1 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
+          transition={{ delay: 0.1 }}
           className="font-syne text-5xl md:text-7xl lg:text-8xl font-extrabold mb-6 leading-tight text-white"
         >
           {t('home.heroTitle').split('.')[0]} <br />
@@ -102,18 +105,13 @@ export default function Home() {
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={{ delay: 0.2 }}
           className="text-text-secondary text-lg md:text-xl max-w-3xl mb-12"
         >
           {t('home.heroDescription')}
         </motion.p>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row gap-4 mb-20"
-        >
+        <motion.div className="flex flex-col sm:flex-row gap-4 mb-20">
           <button 
             onClick={() => setIsRegisterModalOpen(true)}
             className="btn-primary min-w-[200px]"
@@ -127,13 +125,7 @@ export default function Home() {
           </a>
         </motion.div>
 
-        {/* Countdown Grid */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl w-full"
-        >
+        <motion.div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl w-full">
           {[
             { label: 'Days', value: countdown.days },
             { label: 'Hours', value: countdown.hours },
@@ -173,7 +165,7 @@ export default function Home() {
                   {track.desc}
                 </p>
                 <div className="pt-6 border-t border-glass-border flex items-center justify-between">
-                  <span className="text-xs font-bold text-brand-cyan">{t('home.build')}: {track.build}</span>
+                  <span className="text-xs font-bold text-brand-cyan">{track.build}</span>
                   <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-brand-cyan group-hover:text-black transition-all">
                     →
                   </div>
@@ -372,19 +364,28 @@ export default function Home() {
                 {selectedTrack.title}
               </h2>
               <p className="text-brand-cyan font-bold mb-8 flex items-center gap-2">
-                <span className="w-8 h-px bg-brand-cyan" /> Final Project: {selectedTrack.build}
+                <span className="w-8 h-px bg-brand-cyan" /> Project: {selectedTrack.build}
               </p>
               
               <div className="space-y-6 mb-12">
                 <p className="text-text-secondary text-lg leading-relaxed">
                   {selectedTrack.longDesc}
                 </p>
-                <div className="flex flex-wrap gap-3">
-                  {selectedTrack.highlights.map((h: string) => (
-                    <span key={h} className="px-4 py-2 rounded-full glass border-white/10 text-xs font-bold text-white">
-                      #{h}
-                    </span>
-                  ))}
+                
+                <div>
+                  <h4 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">What you will master:</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {selectedTrack.highlights.map((h: string) => (
+                      <span key={h} className="px-4 py-2 rounded-full glass border-white/10 text-xs font-bold text-white">
+                        ✓ {h}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">Tools you will use:</h4>
+                  <p className="text-brand-cyan text-sm font-medium">{selectedTrack.tools}</p>
                 </div>
               </div>
 

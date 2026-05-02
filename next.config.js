@@ -14,30 +14,32 @@ const nextConfig = {
     optimizePackageImports: ['lucide-react', '@heroicons/react'],
   },
   webpack: (config, { dev, isServer }) => {
-    config.optimization = {
-      ...config.optimization,
-      usedExports: true,
-      sideEffects: false,
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          default: false,
-          vendors: false,
-          react: {
-            name: 'chunk-react',
-            test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
-            priority: 50,
-            reuseExistingChunk: true,
-            enforce: true,
-          },
-          common: {
-            minChunks: 2,
-            priority: 40,
-            reuseExistingChunk: true,
-            name: 'common',
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            react: {
+              name: 'chunk-react',
+              test: /[\\/]node_modules[\\/](react|react-dom)[\\/]/,
+              priority: 50,
+              reuseExistingChunk: true,
+              enforce: true,
+            },
+            common: {
+              minChunks: 2,
+              priority: 40,
+              reuseExistingChunk: true,
+              name: 'common',
+            },
           },
         },
-      },
+      }
     }
     return config
   },
