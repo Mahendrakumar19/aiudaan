@@ -308,7 +308,7 @@ export default function Home() {
       {/* Registration Modal Popup */}
       <AnimatePresence>
         {isRegisterModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -320,11 +320,11 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar glass rounded-[3rem] p-4 md:p-8"
+              className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto overflow-x-hidden custom-scrollbar glass rounded-[2rem] md:rounded-[3rem] p-4 md:p-8"
             >
               <button 
                 onClick={() => setIsRegisterModalOpen(false)}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 z-10"
+                className="absolute top-4 right-4 md:top-6 md:right-6 w-10 h-10 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 z-[210]"
               >
                 ✕
               </button>
@@ -337,7 +337,7 @@ export default function Home() {
       {/* Track Details Modal */}
       <AnimatePresence>
         {selectedTrack && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -349,25 +349,25 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-2xl glass rounded-[3rem] p-8 md:p-12 border-brand-cyan/20 overflow-hidden"
+              className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden custom-scrollbar glass rounded-[2rem] md:rounded-[3rem] p-8 md:p-12 border-brand-cyan/20"
             >
               <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-cyan/10 blur-[100px]" />
               <button 
                 onClick={() => setSelectedTrack(null)}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 z-10"
+                className="sticky top-0 float-right -mr-4 -mt-4 md:-mr-8 md:-mt-8 w-10 h-10 rounded-full glass flex items-center justify-center text-white hover:bg-white/10 z-[210] mb-4"
               >
                 ✕
               </button>
               
-              <div className="text-6xl mb-8">{selectedTrack.icon}</div>
-              <h2 className="font-syne text-3xl md:text-5xl font-bold mb-4 text-white">
+              <div className="text-6xl mb-8 relative">{selectedTrack.icon}</div>
+              <h2 className="font-syne text-3xl md:text-5xl font-bold mb-4 text-white relative">
                 {selectedTrack.title}
               </h2>
-              <p className="text-brand-cyan font-bold mb-8 flex items-center gap-2">
+              <p className="text-brand-cyan font-bold mb-8 flex items-center gap-2 relative">
                 <span className="w-8 h-px bg-brand-cyan" /> Project: {selectedTrack.build}
               </p>
               
-              <div className="space-y-6 mb-12">
+              <div className="space-y-6 mb-12 relative">
                 <p className="text-text-secondary text-lg leading-relaxed">
                   {selectedTrack.longDesc}
                 </p>
@@ -376,7 +376,7 @@ export default function Home() {
                   <h4 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">What you will master:</h4>
                   <div className="flex flex-wrap gap-3">
                     {selectedTrack.highlights.map((h: string) => (
-                      <span key={h} className="px-4 py-2 rounded-full glass border-white/10 text-xs font-bold text-white">
+                      <span key={h} className="px-4 py-2 rounded-full glass border-white/10 text-xs font-bold text-white whitespace-normal">
                         ✓ {h}
                       </span>
                     ))}
@@ -385,19 +385,21 @@ export default function Home() {
 
                 <div>
                   <h4 className="text-white font-bold mb-3 text-sm uppercase tracking-wider">Tools you will use:</h4>
-                  <p className="text-brand-cyan text-sm font-medium">{selectedTrack.tools}</p>
+                  <p className="text-brand-cyan text-sm font-medium break-words">{selectedTrack.tools}</p>
                 </div>
               </div>
 
-              <button 
-                onClick={() => {
-                  setSelectedTrack(null)
-                  setIsRegisterModalOpen(true)
-                }}
-                className="btn-primary w-full text-white"
-              >
-                Enroll for this Track
-              </button>
+              <div className="sticky bottom-0 pt-4 bg-transparent backdrop-blur-sm relative z-10">
+                <button 
+                  onClick={() => {
+                    setSelectedTrack(null)
+                    setIsRegisterModalOpen(true)
+                  }}
+                  className="btn-primary w-full text-white shadow-[0_10px_30px_rgba(0,221,235,0.3)]"
+                >
+                  Enroll for this Track
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
