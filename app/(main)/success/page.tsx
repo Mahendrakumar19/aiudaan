@@ -124,7 +124,12 @@ function SuccessContent() {
     <div className="min-h-screen relative flex items-center justify-center py-20 px-4">
       <div className="bg-mesh" />
       <div className="grid-lines" />
-      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl glass p-10 md:p-16 rounded-[3rem]">
+      <motion.div 
+        initial="hidden" 
+        animate="visible" 
+        variants={fadeUpVariants} 
+        className="w-full max-w-4xl glass p-10 md:p-16 rounded-[3rem]"
+      >
         <div className="text-center mb-12">
            <div className="text-4xl mb-4">🎉</div>
            <h1 className="font-syne text-4xl md:text-5xl font-bold mb-2">Registration <span className="brand-gradient-text">Successful</span></h1>

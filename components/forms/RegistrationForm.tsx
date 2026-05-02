@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import { useToast } from '@/hooks/useToast'
 import { fadeUpVariants } from '@/lib/animationVariants'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
@@ -120,6 +120,10 @@ export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFor
     e.preventDefault()
     if (!emailVerified) {
       addToast('Please verify your email first', 'error')
+      return
+    }
+    if (!validateMobile(formData.mobile)) {
+      addToast(t('register.mobileMust10'), 'error')
       return
     }
     setIsLoading(true)

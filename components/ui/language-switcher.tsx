@@ -1,7 +1,6 @@
 'use client'
 
 import { useLanguage } from '@/lib/i18n/LanguageContext'
-import { motion } from 'framer-motion'
 import { useEffect, useState } from 'react'
 
 export default function LanguageSwitcher() {
