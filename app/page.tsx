@@ -1,56 +1,30 @@
-import { BootcampHero } from '@/components/landing/bootcamp-hero'
-import { WhatYouWillBuild } from '@/components/landing/what-you-build'
-import { WhyThisBootcamp } from '@/components/landing/why-bootcamp'
-import { AboutOrganizer } from '@/components/landing/about-organizer'
-import { EnquireCTA } from '@/components/landing/enquire-cta'
-import { ProgramStructure } from '@/components/landing/program-structure'
-import { AISaasSession } from '@/components/landing/ai-saas-session'
-import { AIContentFilmmaking } from '@/components/landing/ai-content-filmmaking'
-import { BonusTools } from '@/components/landing/bonus-tools'
-import { LiveDemo } from '@/components/landing/live-demo'
-import { StudentActivity } from '@/components/landing/student-activity'
-import { UseCases } from '@/components/landing/use-cases'
-import { Earning } from '@/components/landing/earning'
-import { FutureProgram } from '@/components/landing/future-program'
-import { KeyMessage } from '@/components/landing/key-message'
-import { LimitedSeats } from '@/components/landing/limited-seats'
-import { FinalCTA } from '@/components/ui/CTABanner'
-import { AIQuoteSection } from '@/components/landing/ai-quote-section'
-import { GradientBlobs } from '@/components/landing/gradient-blobs'
-import { RegistrationModal } from '@/components/ui/RegistrationModal'
+import { Metadata } from 'next'
+import HomeClient from './HomeClient'
 
-export default function Home() {
-  return (
-    <div className='relative min-h-screen bg-slate-950 text-white overflow-hidden'>
-      {/* Auto-popup Registration Modal */}
-      <RegistrationModal />
+export const metadata: Metadata = {
+  title: 'AI Udaan Bootcamp | Bihar\'s #1 AI Training Platform',
+  description: 'Master ChatGPT, Midjourney, AI Filmmaking, and Automation. Learn how to earn ₹1,00,000+ per month with future-ready AI skills. Join our 2-day intensive bootcamp in Gaya, Bihar.',
+  keywords: [
+    'AI Bootcamp Bihar',
+    'AI training Gaya',
+    'master AI skills',
+    'ChatGPT course Bihar',
+    'AI filmmaking training',
+    'AI automation bootcamp',
+    'Buddha Institute of Technology AI',
+    'AI earning opportunity 2026'
+  ],
+  alternates: {
+    canonical: 'https://aiudaanbootcamp.com',
+  },
+  openGraph: {
+    title: 'AI Udaan Bootcamp | Master the AI Revolution',
+    description: 'Practical AI training for students and professionals. No coding required.',
+    url: 'https://aiudaanbootcamp.com',
+    type: 'website',
+  },
+}
 
-      {/* Animated background */}
-      <GradientBlobs />
-      
-      {/* Grid overlay */}
-      <div className='fixed inset-0 pointer-events-none opacity-5'>
-        <div className='absolute inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-purple-500/10' />
-      </div>
-
-      <BootcampHero />
-      <WhatYouWillBuild />
-      <WhyThisBootcamp />
-      <AIQuoteSection />
-      <FinalCTA />
-      <AboutOrganizer />
-      <ProgramStructure />
-      <AISaasSession />
-      <AIContentFilmmaking />
-      <BonusTools />
-      <LiveDemo />
-      <StudentActivity />
-      <UseCases />
-      <Earning />
-      <FutureProgram />
-      <KeyMessage />
-      <LimitedSeats />
-      <EnquireCTA />
-    </div>
-  )
+export default function Page() {
+  return <HomeClient />
 }

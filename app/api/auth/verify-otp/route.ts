@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 import { otpService } from '@/lib/otpService'
 
 export async function POST(request: NextRequest) {
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Verify OTP error:', error)
+    logger.error('Verify OTP error', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

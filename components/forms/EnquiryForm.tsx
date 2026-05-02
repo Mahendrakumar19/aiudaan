@@ -4,6 +4,7 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useToast } from '@/hooks/useToast'
 import { fadeUpVariants } from '@/lib/animationVariants'
+import { useEffect } from 'react';
 
 interface EnquiryFormData {
   name: string
@@ -26,6 +27,19 @@ export function EnquiryForm() {
     phone: '',
     message: '',
   })
+  const [utmParams, setUtmParams] = useState({});
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const utm = {
+      source: urlParams.get('utm_source'),
+      medium: urlParams.get('utm_medium'),
+      campaign: urlParams.get('utm_campaign'),
+      term: urlParams.get('utm_term'),
+      content: urlParams.get('utm_content'),
+    };
+    setUtmParams(utm);
+  }, []);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -93,7 +107,7 @@ export function EnquiryForm() {
         },
         body: JSON.stringify({
           ...formData,
-          type: 'simple', // Mark as simple enquiry form
+          utmParams,
         }),
       })
 
@@ -120,7 +134,9 @@ export function EnquiryForm() {
           email: formData.email,
           type: 'enquiry',
         })
-        window.location.href = `/success?${params.toString()}`
+        if (typeof window !== 'undefined' && window.location) {
+          window.location.href = `/success?${params.toString()}`
+        }
       }, 1500)
     } catch (error) {
       console.error('Enquiry error:', error)

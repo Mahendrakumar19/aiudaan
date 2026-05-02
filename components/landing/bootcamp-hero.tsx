@@ -1,35 +1,37 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { fadeUpVariants, floatingVariants } from '@/lib/animationVariants'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export function BootcampHero() {
+  const { t } = useLanguage()
   return (
-    <section id="home" className="relative min-h-screen py-32 px-6 flex items-center justify-center overflow-hidden">
-      {/* Animated gradient borders */}
-      <div className='absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5 pointer-events-none' />
+    <section id="home" className="relative min-h-screen py-16 sm:py-24 md:py-32 px-4 sm:px-6 flex items-center justify-center overflow-x-hidden w-full max-w-full">
+      {/* Animated tech borders */}
+      <div className='absolute top-0 left-0 right-0 bottom-0 w-full h-full bg-gradient-to-br from-[#00FFCC]/5 via-transparent to-[#FF0055]/5 pointer-events-none overflow-hidden' />
 
-      <div className="mx-auto max-w-6xl w-full relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+      <div className="mx-auto max-w-6xl w-full relative z-10 overflow-x-hidden">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-6 md:gap-12 items-center overflow-x-hidden">
           {/* Left side - Text */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8 w-full overflow-x-hidden"
           >
             {/* Badge */}
             <motion.div
               variants={fadeUpVariants}
               initial="hidden"
               animate="visible"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 backdrop-blur-sm"
+              className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-slate-900/80 border border-white/10 shadow-sm"
             >
-              <span className='w-2 h-2 rounded-full bg-cyan-400 animate-pulse' />
-              <span className='text-base font-semibold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent'>
-                2-Day Intensive Bootcamp
+              <span className='w-2 h-2 rounded-full bg-[#00FFCC] pulse-dot' />
+              <span className='text-xs sm:text-base font-semibold bg-gradient-to-r from-[#00FFCC] to-[#0099FF] bg-clip-text text-transparent truncate'>
+                {t('home.duration')}
               </span>
             </motion.div>
 
@@ -39,12 +41,12 @@ export function BootcampHero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <h1 className="text-5xl md:text-6xl font-black leading-tight tracking-tighter\">
-                <span className='block text-white mb-3'>AI Udaan</span>
-                <span className='block bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-pulse'>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tighter">
+                <span className='block text-white mb-2 sm:mb-3'>AI Udaan</span>
+                <span className='block bg-gradient-to-r from-[#00FFCC] via-[#0099FF] to-[#FF0055] bg-clip-text text-transparent'>
                   Bootcamp
                 </span>
-                <span className='block text-white'>2026</span>
+                <span className='block text-[#8892B0]'>2026</span>
               </h1>
             </motion.div>
 
@@ -53,9 +55,9 @@ export function BootcampHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
-              className="text-xl md:text-3xl text-white leading-relaxed max-w-3xl font-medium"
+              className="text-lg sm:text-xl md:text-3xl text-[#8892B0] leading-relaxed max-w-3xl font-medium"
             >
-              <span className='font-bold text-transparent bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text'>Master AI Tools</span>, Content Creation & Real-World Skills
+              <span className='font-bold text-transparent bg-gradient-to-r from-[#00FFCC] to-[#0099FF] bg-clip-text'>{t('home.heroTitle')}</span>, {t('courses.contentCreation')} & Real-World Skills
             </motion.p>
 
             {/* Learn → Build → Earn */}
@@ -63,12 +65,12 @@ export function BootcampHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.5 }}
-              className="space-y-3"
+              className="space-y-2 sm:space-y-3"
             >
-              <p className="text-2xl font-semibold text-cyan-400">
-                Learn AI → Build Projects → Start Earning
+              <p className="text-xl sm:text-2xl font-semibold text-[#00FFCC]">
+                {t('home.heroSubtitle')}
               </p>
-              <div className='h-1 w-32 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full' />
+              <div className='h-1 w-24 sm:w-32 bg-gradient-to-r from-[#00FFCC] to-[#0099FF] rounded-full' />
             </motion.div>
 
             {/* Details */}
@@ -76,19 +78,19 @@ export function BootcampHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.6 }}
-              className="space-y-4 pt-6 border-t border-white/20"
+              className="space-y-3 sm:space-y-4 pt-4 sm:pt-6 border-t border-white/10"
             >
-              <p className="flex items-center gap-4 text-white text-xl font-medium">
-                <span className='w-3 h-3 rounded-full bg-cyan-400 flex-shrink-0' />
-                Buddha Institute of Technology, Gaya
+              <p className="flex items-start gap-3 text-[#CCD6F6] text-base sm:text-lg md:text-xl font-medium">
+                <span className='w-3 h-3 rounded-full bg-[#00FFCC] flex-shrink-0 mt-1' />
+                <span>{t('common.buddhainstitute')}, Gaya Ji</span>
               </p>
-              <p className="flex items-center gap-4 text-white text-xl font-medium">
-                <span className='w-3 h-3 rounded-full bg-purple-400 flex-shrink-0' />
-                For Class 10th & 12th Students
+              <p className="flex items-start gap-3 text-[#CCD6F6] text-base sm:text-lg md:text-xl font-medium">
+                <span className='w-3 h-3 rounded-full bg-[#0099FF] flex-shrink-0 mt-1' />
+                <span>For Class 10th, 12th Passed and {t('home.graduateStudents')}</span>
               </p>
-              <p className="flex items-center gap-4 text-white text-xl font-medium">
-                <span className='w-3 h-3 rounded-full bg-pink-400 flex-shrink-0' />
-                Limited Seats | Certificate Included
+              <p className="flex items-start gap-3 text-[#CCD6F6] text-base sm:text-lg md:text-xl font-medium">
+                <span className='w-3 h-3 rounded-full bg-[#FF0055] flex-shrink-0 mt-1' />
+                <span>{t('home.limited')} | {t('home.certificate')}</span>
               </p>
             </motion.div>
 
@@ -97,19 +99,19 @@ export function BootcampHero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.7 }}
-              className="flex flex-col gap-4 pt-6"
+              className="flex flex-col gap-4 pt-4 sm:pt-6 w-full"
             >
-              <Link href="/register" className="w-full sm:w-auto">
+              <Link href="/register" className="w-full">
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   className="w-full"
                 >
                   <Button
                     size="lg"
-                    className="w-full px-9 py-8 text-xl rounded-xl font-bold bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg"
+                    className="w-full px-6 sm:px-9 py-3 text-base sm:text-lg rounded-lg font-bold bg-gradient-to-r from-[#00FFCC] to-[#0099FF] hover:from-[#00CCAA] hover:to-[#0077CC] text-[#06080B] shadow-lg hover:shadow-[#00FFCC]/25 transition-all"
                   >
-                    Register Now
+                    {t('nav.register')}
                   </Button>
                 </motion.div>
               </Link>
@@ -119,10 +121,10 @@ export function BootcampHero() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
-                className="flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-orange-500/20 border border-orange-400/50 backdrop-blur-sm"
+                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-3 rounded-lg bg-[#FF0055]/10 border border-[#FF0055]/30 font-semibold text-[#FF0055] text-sm sm:text-base"
               >
-                <span className="text-xl animate-pulse">⚠️</span>
-                <span className="text-orange-300 font-semibold">Only a few seats left! Hurry up</span>
+                <span className="text-lg sm:text-xl pulse-dot">⚠️</span>
+                <span className="text-[#FF0055] font-semibold">{t('home.urgency')}</span>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -132,29 +134,19 @@ export function BootcampHero() {
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="relative h-full min-h-[700px] hidden md:flex items-center justify-center perspective"
+            className="relative h-full min-h-[400px] sm:min-h-[500px] md:min-h-[700px] hidden md:flex items-center justify-center perspective overflow-hidden"
           >
-            {/* Central glow circle */}
-            <motion.div
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.3, 0.5, 0.3],
-              }}
-              transition={{ duration: 3, repeat: Infinity }}
-              className='absolute inset-0 rounded-full bg-gradient-to-br from-cyan-500/30 to-purple-500/30 blur-3xl'
-            />
-
             {/* Cards container with diagonal flex layout */}
             <div className="relative w-full h-full flex items-center justify-center">
               {/* Floating AI card 1 - Top Left */}
               <motion.div
                 variants={floatingVariants}
                 animate="animate"
-                className="absolute w-64 h-80 rounded-3xl backdrop-blur-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/10 border border-cyan-400/30 p-8 shadow-2xl shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all cursor-pointer hover:scale-105 top-0 left-8"
+                className="absolute w-48 sm:w-56 md:w-64 h-56 sm:h-72 md:h-80 rounded-3xl bg-[#0D1117]/80 backdrop-blur-xl border border-white/10 p-6 sm:p-8 shadow-xl hover:border-[#00FFCC]/30 transition-all cursor-pointer hover:scale-105 top-0 left-0 sm:left-4 md:left-8 text-sm sm:text-base"
               >
-                <div className='text-5xl mb-6'>🤖</div>
-                <h3 className='text-white font-bold text-xl mb-3'>AI Tools</h3>
-                <p className='text-cyan-300 text-lg leading-relaxed'>Master ChatGPT, Midjourney & more</p>
+                <div className='text-4xl sm:text-5xl mb-4 sm:mb-6'>🤖</div>
+                <h3 className='text-white font-bold text-lg sm:text-xl mb-2 sm:mb-3'>{t('home.aiTools')}</h3>
+                <p className='text-[#00FFCC] text-base sm:text-lg leading-relaxed'>{t('home.buildWebApps')}</p>
               </motion.div>
 
               {/* Floating AI card 2 - Center Right */}
@@ -162,11 +154,11 @@ export function BootcampHero() {
                 variants={floatingVariants}
                 animate="animate"
                 transition={{ delay: 0.3 }}
-                className="absolute w-64 h-80 rounded-3xl backdrop-blur-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 border border-purple-400/30 p-8 shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 transition-all cursor-pointer hover:scale-105 top-1/3 right-0"
+                className="absolute w-48 sm:w-56 md:w-64 h-56 sm:h-72 md:h-80 rounded-3xl bg-[#0D1117]/80 backdrop-blur-xl border border-white/10 p-6 sm:p-8 shadow-xl hover:border-[#0099FF]/30 transition-all cursor-pointer hover:scale-105 top-1/3 right-0 sm:right-2 md:right-0 text-sm sm:text-base"
               >
-                <div className='text-5xl mb-6'>💡</div>
-                <h3 className='text-white font-bold text-xl mb-3'>Build Projects</h3>
-                <p className='text-purple-300 text-lg leading-relaxed'>Real-world applications</p>
+                <div className='text-4xl sm:text-5xl mb-4 sm:mb-6'>💡</div>
+                <h3 className='text-white font-bold text-lg sm:text-xl mb-2 sm:mb-3'>{t('home.projects')}</h3>
+                <p className='text-[#0099FF] text-base sm:text-lg leading-relaxed'>{t('home.realWorldApps')}</p>
               </motion.div>
 
               {/* Floating AI card 3 - Bottom Left */}
@@ -174,11 +166,11 @@ export function BootcampHero() {
                 variants={floatingVariants}
                 animate="animate"
                 transition={{ delay: 0.6 }}
-                className="absolute w-64 h-80 rounded-3xl backdrop-blur-xl bg-gradient-to-br from-pink-500/20 to-purple-500/10 border border-pink-400/30 p-8 shadow-2xl shadow-pink-500/30 hover:shadow-pink-500/50 transition-all cursor-pointer hover:scale-105 bottom-0 left-8"
+                className="absolute w-48 sm:w-56 md:w-64 h-56 sm:h-72 md:h-80 rounded-3xl bg-[#0D1117]/80 backdrop-blur-xl border border-white/10 p-6 sm:p-8 shadow-xl hover:border-[#FF0055]/30 transition-all cursor-pointer hover:scale-105 bottom-0 left-0 sm:left-4 md:left-8 text-sm sm:text-base"
               >
-                <div className='text-5xl mb-6'>💰</div>
-                <h3 className='text-white font-bold text-xl mb-3'>Earn Money</h3>
-                <p className='text-pink-300 text-lg leading-relaxed'>Monetize your skills</p>
+                <div className='text-4xl sm:text-5xl mb-4 sm:mb-6'>💰</div>
+                <h3 className='text-white font-bold text-lg sm:text-xl mb-2 sm:mb-3'>{t('home.earnMoney')}</h3>
+                <p className='text-[#FF0055] text-base sm:text-lg leading-relaxed'>{t('home.monetizeSkills')}</p>
               </motion.div>
             </div>
           </motion.div>

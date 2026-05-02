@@ -1,111 +1,61 @@
 'use client'
 
 import Link from 'next/link'
-// import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear()
+  const { t } = useLanguage()
 
   return (
-    <footer className='bg-glass-light backdrop-blur-lg border-t border-white/20 mt-20'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
-        <div className='grid grid-cols-1 md:grid-cols-4 gap-8 mb-8'>
-          {/* Brand */}
-          <div className='md:col-span-1'>
-            <div className='mb-3 flex items-center justify-center bg-white rounded-full w-32 h-32 overflow-hidden border-2 border-white/50 shadow-lg'>
-              <img
-                src='/images/logo.png'
-                alt='Buddha Institute of Technology logo'
-                width={128}
-                height={128}
-                className='w-full h-full object-contain p-2'
-              />
+    <footer className="border-t border-glass-border py-20 relative overflow-hidden bg-bg-deep">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-brand-cyan/50 to-transparent" />
+      
+      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="md:col-span-2">
+          <Link href="/" className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center font-bold text-xl">
+               <span className="text-white">🚀</span>
             </div>
-            <h3 className='text-3xl font-bold text-white mb-2'>Buddha Institute of Technology</h3>
-            <p className='text-white/60 text-lg'>AICTE Approved · BEU Affiliated</p>
-            <p className='text-white/60 text-lg'>Empowering the next generation of AI leaders</p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h4 className='text-white text-xl font-semibold mb-4'>Product</h4>
-            <ul className='space-y-2'>
-              <li>
-                <Link href='/courses' className='text-white/60 hover:text-white transition text-lg'>
-                  Courses
-                </Link>
-              </li>
-              <li>
-                <Link href='/#features' className='text-white/60 hover:text-white transition'>
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link href='/#pricing' className='text-white/60 hover:text-white transition'>
-                  Pricing
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h4 className='text-white font-semibold mb-4'>Support</h4>
-            <ul className='space-y-2'>
-              <li>
-                <Link href='/contact' className='text-white/60 hover:text-white transition'>
-                  Contact
-                </Link>
-              </li>
-              <li>
-                <Link href='/privacy-policy' className='text-white/60 hover:text-white transition'>
-                  Privacy
-                </Link>
-              </li>
-              <li>
-                <Link href='/' className='text-white/60 hover:text-white transition'>
-                  Terms
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Social */}
-          <div>
-            <h4 className='text-white font-semibold mb-4'>Social</h4>
-            <div className='flex gap-4'>
-              <a href='#' className='text-white/60 hover:text-white transition text-xl'>
-                𝕏
-              </a>
-              <a href='#' className='text-white/60 hover:text-white transition text-xl'>
-                f
-              </a>
-              <a href='#' className='text-white/60 hover:text-white transition text-xl'>
-                in
-              </a>
-            </div>
+            <span className="font-syne font-bold text-xl tracking-tight text-white">AI UDAAN <span className="text-brand-orange">BOOTCAMP</span></span>
+          </Link>
+          <p className="text-text-secondary max-w-sm mb-8 leading-relaxed">
+            {t('about.missionStatement')}
+          </p>
+          <div className="flex gap-4">
+            {['f', 't', 'in', 'ig'].map(s => (
+              <span key={s} className="w-10 h-10 rounded-xl glass flex items-center justify-center text-white hover:text-brand-cyan transition-all cursor-pointer hover:-translate-y-1">
+                {s}
+              </span>
+            ))}
           </div>
         </div>
 
-        {/* Bottom */}
-        <div className='border-t border-white/10 pt-8'>
-          <div className='flex flex-col md:flex-row justify-between items-center'>
-            <p className='text-white/60 text-sm'>
-              © {currentYear} AI Learn NG. All rights reserved.
-            </p>
-            <div className='flex gap-6 mt-4 md:mt-0'>
-              <Link href='/privacy-policy' className='text-white/60 hover:text-white transition text-sm'>
-                Privacy Policy
-              </Link>
-              <Link href='/' className='text-white/60 hover:text-white transition text-sm'>
-                Terms of Service
-              </Link>
-            </div>
-          </div>
+        <div>
+          <h4 className="font-bold mb-6 text-white uppercase tracking-widest text-[10px]">{t('courses.courses')}</h4>
+          <ul className="space-y-4 text-sm text-text-secondary">
+            <li><Link href="/#tracks" className="hover:text-brand-cyan transition-colors">{t('nav.courses')}</Link></li>
+            <li><Link href="/tools" className="hover:text-brand-cyan transition-colors">{t('common.master')}</Link></li>
+            <li><Link href="/journey" className="hover:text-brand-cyan transition-colors">{t('nav.journey')}</Link></li>
+            <li><Link href="/blog" className="hover:text-brand-cyan transition-colors">{t('nav.blog')}</Link></li>
+          </ul>
         </div>
+
+        <div>
+          <h4 className="font-bold mb-6 text-white uppercase tracking-widest text-[10px]">{t('nav.contact')}</h4>
+          <ul className="space-y-4 text-sm text-text-secondary">
+            <li><Link href="/privacy-policy" className="hover:text-brand-cyan transition-colors">{t('footer.privacy')}</Link></li>
+            <li><Link href="/terms-and-conditions" className="hover:text-brand-cyan transition-colors">{t('footer.terms')}</Link></li>
+            <li><Link href="/contact" className="hover:text-brand-cyan transition-colors">{t('footer.contact')}</Link></li>
+            <li><Link href="/about" className="hover:text-brand-cyan transition-colors">{t('nav.about')}</Link></li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 mt-20 pt-8 border-t border-glass-border flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-bold text-text-secondary uppercase tracking-widest">
+        <p>© {currentYear} {t('common.aiBootcamp')}. {t('footer.copyright')}</p>
+        <p>{t('footer.poweredby')}</p>
       </div>
     </footer>
   )
 }
-
-// ...existing code...

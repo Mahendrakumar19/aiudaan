@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import { hashPassword, generateToken } from '@/lib/auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Registration error:', error)
+    logger.error('Registration error', error)
     return NextResponse.json(
       { message: 'Registration failed' },
       { status: 500 }

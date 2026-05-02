@@ -1,20 +1,25 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React, { useState, useMemo, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useToast } from '@/hooks/useToast'
 import { fadeUpVariants } from '@/lib/animationVariants'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
+import { stateDistrictMap, states } from '@/lib/state-district-map'
 
 interface FormData {
   name: string
   mobile: string
   email: string
   address: string
+  state: string
+  district: string
   class: string
   aiDomain: string
   otherAiDomain: string
   source: string
   interest: string
+  bootcampType: string
 }
 
 interface FormErrors {
@@ -28,6 +33,7 @@ interface RegistrationFormProps {
 
 export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFormProps = {}) {
   const { addToast } = useToast()
+  const { t } = useLanguage()
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [formData, setFormData] = useState<FormData>({
@@ -35,11 +41,14 @@ export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFor
     mobile: '',
     email: '',
     address: '',
+    state: '',
+    district: '',
     class: '',
     aiDomain: '',
     otherAiDomain: '',
     source: '',
     interest: '',
+    bootcampType: 'online', // Default to online
   })
   const [otpSent, setOtpSent] = useState(false)
   const [emailVerified, setEmailVerified] = useState(false)
@@ -47,35 +56,19 @@ export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFor
   const [otpLoading, setOtpLoading] = useState(false)
   const [otpError, setOtpError] = useState('')
 
-  const labelClass = isModal ? 'block mb-1.5 text-[11px] text-gray-400 font-medium' : 'block mb-2 text-sm text-gray-400 font-medium'
-  const controlClass = isModal
-    ? 'w-full h-10 px-3 bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm transition-all duration-300 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm'
-    : 'w-full h-12 px-4 bg-white/10 border border-white/20 rounded-xl backdrop-blur-sm transition-all duration-300 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base'
-  const controlErrorClass = 'border-red-500'
+  const availableDistricts = useMemo(() => {
+    return formData.state ? stateDistrictMap[formData.state] || [] : []
+  }, [formData.state])
 
-  // Validation functions
-  const validateEmail = (email: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
-
-  const validateMobile = (mobile: string): boolean => {
-    return /^\d{10}$/.test(mobile.replace(/\D/g, ''))
-  }
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const validateMobile = (mobile: string) => /^\d{10}$/.test(mobile.replace(/\D/g, ''))
 
   const sendOTP = async () => {
     setOtpError('')
-    
-    if (!formData.email.trim()) {
-      setOtpError('Email is required')
+    if (!formData.email.trim() || !validateEmail(formData.email)) {
+      setOtpError(t('errors.invalidEmail'))
       return
     }
-
-    if (!validateEmail(formData.email)) {
-      setOtpError('Invalid email format')
-      return
-    }
-
     setOtpLoading(true)
     try {
       const response = await fetch('/api/auth/send-otp', {
@@ -83,21 +76,11 @@ export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFor
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setOtpError(data.message || 'Failed to send OTP')
-        addToast(data.message || 'Failed to send OTP', 'error', 3000)
-        return
-      }
-
+      if (!response.ok) throw new Error('Failed to send OTP')
       setOtpSent(true)
-      addToast('OTP sent to your email! Check your inbox.', 'success', 3000)
+      addToast(t('register.otpSentSuccess'), 'success')
     } catch (error) {
-      console.error('Send OTP error:', error)
-      setOtpError('Failed to send OTP. Please try again.')
-      addToast('Failed to send OTP', 'error', 3000)
+      setOtpError(t('register.failedSendOTP'))
     } finally {
       setOtpLoading(false)
     }
@@ -105,12 +88,7 @@ export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFor
 
   const verifyOTP = async () => {
     setOtpError('')
-
-    if (!otp.trim()) {
-      setOtpError('Please enter OTP')
-      return
-    }
-
+    if (!otp.trim()) return
     setOtpLoading(true)
     try {
       const response = await fetch('/api/auth/verify-otp', {
@@ -118,583 +96,251 @@ export function RegistrationForm({ onSuccess, isModal = false }: RegistrationFor
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, otp }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        setOtpError(data.message || 'Invalid OTP')
-        addToast(data.message || 'Invalid OTP', 'error', 3000)
-        return
-      }
-
+      if (!response.ok) throw new Error('Invalid OTP')
       setEmailVerified(true)
-      setOtp('')
-      addToast('Email verified successfully!', 'success', 3000)
+      addToast(t('register.otpVerified'), 'success')
     } catch (error) {
-      console.error('Verify OTP error:', error)
-      setOtpError('Failed to verify OTP. Please try again.')
-      addToast('Failed to verify OTP', 'error', 3000)
+      setOtpError(t('register.invalidOTP'))
     } finally {
       setOtpLoading(false)
     }
   }
 
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Full Name is required'
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
-    } else if (!validateEmail(formData.email)) {
-      newErrors.email = 'Invalid email format'
-    }
-
-    if (!emailVerified) {
-      newErrors.email = 'Please verify your email with OTP'
-    }
-
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = 'Mobile Number is required'
-    } else if (!validateMobile(formData.mobile)) {
-      newErrors.mobile = 'Mobile must be 10 digits'
-    }
-
-    if (!formData.class) {
-      newErrors.class = 'Please select your class'
-    }
-
-    if (!formData.aiDomain) {
-      newErrors.aiDomain = 'Please select a domain to explore using AI'
-    }
-
-    if (formData.aiDomain === 'Other (Please Specify)' && !formData.otherAiDomain.trim()) {
-      newErrors.otherAiDomain = 'Please specify your domain'
-    }
-
-    if (!formData.source) {
-      newErrors.source = 'Please select how you heard about us'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-
     if (name === 'email') {
       setEmailVerified(false)
       setOtpSent(false)
-      setOtp('')
-      setOtpError('')
     }
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-
-    if (name === 'aiDomain' && value !== 'Other (Please Specify)') {
-      setFormData((prev) => ({
-        ...prev,
-        otherAiDomain: '',
-      }))
-      if (errors.otherAiDomain) {
-        setErrors((prev) => ({
-          ...prev,
-          otherAiDomain: '',
-        }))
-      }
-    }
-
-    // Clear error for this field when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }))
-    }
+    setFormData(prev => ({ ...prev, [name]: value, ...(name === 'state' ? { district: '' } : {}) }))
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }))
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      addToast('Please fill all required fields correctly', 'error', 4000)
+    if (!emailVerified) {
+      addToast('Please verify your email first', 'error')
       return
     }
-
     setIsLoading(true)
-
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        addToast(data.message || 'Registration failed. Please try again.', 'error', 4000)
-        return
-      }
-
-      // Success
-      addToast('Registration सफल 🎉', 'success', 4000)
-
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess()
-      }
-
-      // Reset form
-      setFormData({
-        name: '',
-        mobile: '',
-        email: '',
-        address: '',
-        class: '',
-        aiDomain: '',
-        otherAiDomain: '',
-        source: '',
-        interest: '',
-      })
-
-      // Redirect to success page with user details
-      setTimeout(() => {
-        const params = new URLSearchParams({
-          name: formData.name,
-          email: formData.email,
-          mobile: formData.mobile,
-        })
-        window.location.href = `/success?${params.toString()}`
-      }, 1500)
+      if (!response.ok) throw new Error('Registration failed')
+      addToast(t('register.registrationSuccessful'), 'success')
+      if (onSuccess) onSuccess()
+      window.location.href = `/success?name=${formData.name}&email=${formData.email}`
     } catch (error) {
-      console.error('Registration error:', error)
-      addToast('Something went wrong. Please try again.', 'error', 4000)
+      addToast(t('errors.somethingWrong'), 'error')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className={isModal ? "p-6" : "min-h-screen flex items-center justify-center py-4 px-4"}>
-      {/* Animated gradient background - only show when not in modal */}
-      {!isModal && (
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-purple-500/5" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl" />
-        </div>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className={isModal ? "w-full relative" : "w-full max-w-5xl relative z-10"}
+    <div className={`w-full max-w-4xl mx-auto ${isModal ? '' : 'py-12 px-6'}`}>
+      <motion.div 
+        initial="hidden" 
+        animate="visible" 
+        variants={fadeUpVariants}
+        className={`${isModal ? '' : 'glass p-8 md:p-12 rounded-[2.5rem] border-white/10'}`}
       >
-        {/* Glass Card */}
-        <div className={isModal ? "p-6" : "bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 shadow-[0_0_40px_rgba(34,211,238,0.18)]"}>
-          {/* Header */}
-          <motion.div
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            className="mb-4 text-center"
-          >
-            <h1 className={isModal ? 'text-xl font-bold mb-0.5' : 'text-3xl font-bold mb-1'}>
-              <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Register Now
-              </span>
-            </h1>
-            <p className={isModal ? 'text-gray-300 text-[11px]' : 'text-gray-300 text-base'}>Join AI Udaan Bootcamp 2026</p>
-            <div className="h-1 w-20 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full mx-auto mt-2" />
-          </motion.div>
+        <div className="text-center mb-10">
+          <h2 className="font-syne text-3xl md:text-4xl font-bold mb-3">
+            Join the <span className="brand-gradient-text">AI Revolution</span>
+          </h2>
+          <p className="text-text-secondary">Fill in the details to secure your spot for the 8-9 May batch.</p>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-4">
-            {/* Full Name */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.1 }}
-            >
-              <label className={labelClass}>
-                Full Name
-                <span className="text-red-400">*</span>
-              </label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">Full Name *</label>
               <input
                 type="text"
                 name="name"
+                required
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter your full name"
-                className={`${controlClass} ${
-                  errors.name ? controlErrorClass : ''
-                }`}
+                placeholder="Enter your name"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all"
               />
-              {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
-            </motion.div>
+            </div>
 
-            {/* Email */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.15 }}
-            >
-              <label className={labelClass}>
-                Email ID
-                <span className="text-red-400">*</span>
-              </label>
-              <div className="flex gap-2">
+            {/* Mobile */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">Mobile Number *</label>
+              <input
+                type="tel"
+                name="mobile"
+                required
+                value={formData.mobile}
+                onChange={handleChange}
+                placeholder="10-digit mobile number"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all"
+              />
+            </div>
+
+            {/* Email & OTP */}
+            <div className="space-y-2 md:col-span-2">
+              <label className="text-sm font-semibold text-slate-200">Email Address *</label>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="email"
                   name="email"
+                  required
+                  disabled={emailVerified}
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={emailVerified}
-                  placeholder="Enter your email"
-                  className={`flex-1 ${controlClass} disabled:opacity-50 ${
-                    errors.email ? controlErrorClass : ''
-                  }`}
+                  placeholder="name@example.com"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all disabled:opacity-50"
                 />
                 {!emailVerified && (
                   <button
                     type="button"
                     onClick={sendOTP}
-                    disabled={otpLoading || !formData.email.trim()}
-                    className={isModal ? 'h-10 px-3 bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 text-white font-medium rounded-xl transition-all duration-300 whitespace-nowrap text-[11px]' : 'h-12 px-4 bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 text-white font-medium rounded-xl transition-all duration-300 whitespace-nowrap'}
+                    disabled={otpLoading || !formData.email}
+                    className="btn-primary py-3 px-6 text-sm"
                   >
-                    {otpLoading ? 'Sending...' : 'Send OTP'}
+                    {otpLoading ? 'Sending...' : otpSent ? 'Resend OTP' : 'Verify Email'}
                   </button>
                 )}
                 {emailVerified && (
-                  <div className={isModal ? 'h-10 px-3 bg-green-500/20 border border-green-500 text-green-400 font-medium rounded-xl whitespace-nowrap flex items-center gap-2 text-[11px]' : 'h-12 px-4 bg-green-500/20 border border-green-500 text-green-400 font-medium rounded-xl whitespace-nowrap flex items-center gap-2'}>
+                  <div className="px-6 py-3.5 bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl text-sm font-bold flex items-center gap-2">
                     ✓ Verified
                   </div>
                 )}
               </div>
-              {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
-              {otpError && <p className="text-red-400 text-sm mt-1">{otpError}</p>}
-            </motion.div>
-
-            {/* OTP Verification */}
-            {otpSent && !emailVerified && (
-              <motion.div
-                variants={fadeUpVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: 0.16 }}
-              >
-                <label className={labelClass}>
-                  OTP Code
-                  <span className="text-red-400">*</span>
-                </label>
-                <div className="flex gap-2">
+              {otpSent && !emailVerified && (
+                <div className="mt-4 flex gap-3 animate-in fade-in slide-in-from-top-2">
                   <input
                     type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) => setOtp(e.target.value)}
                     placeholder="Enter 6-digit OTP"
-                    maxLength={6}
-                    className={`flex-1 ${controlClass}`}
+                    className="flex-1 bg-brand-blue/10 border border-brand-blue/30 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none"
                   />
                   <button
                     type="button"
                     onClick={verifyOTP}
-                    disabled={otpLoading || !otp.trim()}
-                    className={isModal ? 'h-10 px-3 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 text-white font-medium rounded-xl transition-all duration-300 whitespace-nowrap text-[11px]' : 'h-12 px-4 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 text-white font-medium rounded-xl transition-all duration-300 whitespace-nowrap'}
+                    className="btn-orange py-3 px-6 text-sm"
                   >
-                    {otpLoading ? 'Verifying...' : 'Verify'}
+                    {otpLoading ? 'Verifying...' : 'Confirm OTP'}
                   </button>
                 </div>
-              </motion.div>
-            )}
-
-            {/* Mobile Number */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.2 }}
-            >
-              <label className={labelClass}>
-                Mobile Number
-                <span className="text-red-400">*</span>
-              </label>
-              <input
-                type="tel"
-                name="mobile"
-                value={formData.mobile}
-                onChange={handleChange}
-                placeholder="Enter 10 digit mobile number"
-                className={`${controlClass} ${
-                  errors.mobile ? controlErrorClass : ''
-                }`}
-              />
-              {errors.mobile && <p className="text-red-400 text-sm mt-1">{errors.mobile}</p>}
-            </motion.div>
-
-            {/* Address */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.25 }}
-            >
-              <label className={labelClass}>Address</label>
-              <input
-                type="text"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                placeholder="Enter your address"
-                className={controlClass}
-              />
-            </motion.div>
-
-            {/* Class Dropdown */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.3 }}
-            >
-              <label className={labelClass}>
-                Class
-                <span className="text-red-400">*</span>
-              </label>
-              <select
-                name="class"
-                value={formData.class}
-                onChange={handleChange}
-                className={`${controlClass} appearance-none cursor-pointer ${
-                  errors.class ? controlErrorClass : ''
-                }`}
-              >
-                <option value="" className="text-slate-900">
-                  Select your class
-                </option>
-                <option value="10th Pass" className="text-slate-900">
-                  10th Pass
-                </option>
-                <option value="12th Pass" className="text-slate-900">
-                  12th Pass
-                </option>
-                <option value="Graduate" className="text-slate-900">
-                  Graduate
-                </option>
-                <option value="Post Graduate" className="text-slate-900">
-                  Post Graduate
-                </option>
-                <option value="Others" className="text-slate-900">
-                  Others
-                </option>
-              </select>
-              {errors.class && <p className="text-red-400 text-sm mt-1">{errors.class}</p>}
-            </motion.div>
-
-            {/* Domain Exploration Dropdown */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.34 }}
-            >
-              <label className={labelClass}>
-                Select Domain You Want to Explore Using AI
-                <span className="text-red-400">*</span>
-              </label>
-              <select
-                name="aiDomain"
-                value={formData.aiDomain}
-                onChange={handleChange}
-                className={`${controlClass} appearance-none cursor-pointer ${
-                  errors.aiDomain ? controlErrorClass : ''
-                }`}
-              >
-                <option value="" className="text-slate-900">
-                  Select domain
-                </option>
-                <option value="AI Filmmaking & Creative Design" className="text-slate-900">
-                  AI Filmmaking & Creative Design
-                </option>
-                <option value="SaaS Web Application Development" className="text-slate-900">
-                  SaaS Web Application Development
-                </option>
-                <option value="AI-Powered Digital Marketing" className="text-slate-900">
-                  AI-Powered Digital Marketing
-                </option>
-                <option value="Other (Please Specify)" className="text-slate-900">
-                  Other (Please Specify)
-                </option>
-              </select>
-              {errors.aiDomain && <p className="text-red-400 text-sm mt-1">{errors.aiDomain}</p>}
-            </motion.div>
-
-            {/* Other Domain Input (Conditional) */}
-            {formData.aiDomain === 'Other (Please Specify)' && (
-              <motion.div
-                variants={fadeUpVariants}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: 0.35 }}
-                className="overflow-hidden"
-              >
-                <label className={labelClass}>
-                  Please Specify Your Domain
-                  <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="otherAiDomain"
-                  value={formData.otherAiDomain}
-                  onChange={handleChange}
-                  placeholder="Enter your domain of interest"
-                  className={`${controlClass} ${
-                    errors.otherAiDomain ? controlErrorClass : ''
-                  }`}
-                />
-                {errors.otherAiDomain && <p className="text-red-400 text-sm mt-1">{errors.otherAiDomain}</p>}
-              </motion.div>
-            )}
-
-            {/* How did you hear about us */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.36 }}
-            >
-              <label className={labelClass}>
-                How did you hear about us?
-                <span className="text-red-400">*</span>
-              </label>
-              <select
-                name="source"
-                value={formData.source}
-                onChange={handleChange}
-                className={`${controlClass} appearance-none cursor-pointer ${
-                  errors.source ? controlErrorClass : ''
-                }`}
-              >
-                <option value="" className="text-slate-900">
-                  Select source
-                </option>
-                <option value="Facebook" className="text-slate-900">
-                  Facebook
-                </option>
-                <option value="Google" className="text-slate-900">
-                  Google
-                </option>
-                <option value="Instagram" className="text-slate-900">
-                  Instagram
-                </option>
-                <option value="WhatsApp" className="text-slate-900">
-                  WhatsApp
-                </option>
-                <option value="Friends" className="text-slate-900">
-                  Friends
-                </option>
-                <option value="College" className="text-slate-900">
-                  College
-                </option>
-                <option value="Other" className="text-slate-900">
-                  Other
-                </option>
-              </select>
-              {errors.source && <p className="text-red-400 text-sm mt-1">{errors.source}</p>}
-            </motion.div>
-
-            {/* Interest Level */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.37 }}
-            >
-              <label className={labelClass}>Interest Level (Optional)</label>
-              <select
-                name="interest"
-                value={formData.interest}
-                onChange={handleChange}
-                className={`${controlClass} appearance-none cursor-pointer`}
-              >
-                <option value="" className="text-slate-900">
-                  Select your interest level
-                </option>
-                <option value="Just exploring" className="text-slate-900">
-                  Just exploring
-                </option>
-                <option value="Want to learn AI" className="text-slate-900">
-                  Want to learn AI
-                </option>
-                <option value="Want to earn using AI" className="text-slate-900">
-                  Want to earn using AI
-                </option>
-              </select>
-            </motion.div>
+              )}
+              {otpError && <p className="text-red-400 text-xs mt-1">{otpError}</p>}
             </div>
 
-            {/* Submit Button */}
-            <motion.div
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.4 }}
-              className="pt-1"
-            >
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={isModal ? 'w-full relative overflow-hidden group h-10 px-5 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg' : 'w-full relative overflow-hidden group h-12 px-6 rounded-xl font-bold text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed bg-cyan-500 hover:bg-cyan-600 text-white shadow-lg'}
+            {/* State */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">State *</label>
+              <select
+                name="state"
+                required
+                value={formData.state}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all appearance-none"
               >
-                {/* Button content */}
-                <div className="relative flex items-center justify-center gap-2 text-white">
-                  {isLoading ? (
-                    <>
-                      <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                        <span className="text-sm">Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                        <span className="text-sm">Register Now</span>
-                        <span className="text-sm">✨</span>
-                    </>
-                  )}
-                </div>
-              </button>
-            </motion.div>
+                <option value="" className="bg-bg-deep">Select State</option>
+                {states.map(s => <option key={s} value={s} className="bg-bg-deep">{s}</option>)}
+              </select>
+            </div>
 
-            {/* Terms */}
-            <motion.p
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.42 }}
-              className="text-center text-gray-400 text-xs mt-1"
+            {/* District */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">District *</label>
+              <select
+                name="district"
+                required
+                disabled={!formData.state}
+                value={formData.district}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all appearance-none disabled:opacity-50"
+              >
+                <option value="" className="bg-bg-deep">Select District</option>
+                {availableDistricts.map(d => <option key={d} value={d} className="bg-bg-deep">{d}</option>)}
+              </select>
+            </div>
+
+            {/* Class */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">Education *</label>
+              <select
+                name="class"
+                required
+                value={formData.class}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all appearance-none"
+              >
+                <option value="" className="bg-bg-deep">Highest Qualification</option>
+                {['10th Pass', '12th Pass', 'Graduate', 'Post Graduate', 'Others'].map(o => <option key={o} value={o} className="bg-bg-deep">{o}</option>)}
+              </select>
+            </div>
+
+            {/* Interest Area */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">Interested Track *</label>
+              <select
+                name="aiDomain"
+                required
+                value={formData.aiDomain}
+                onChange={handleChange}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 focus:border-brand-cyan outline-none transition-all appearance-none"
+              >
+                <option value="" className="bg-bg-deep">Choose Domain</option>
+                {['AI Filmmaking', 'AI Web App Development', 'AI-Powered Digital Marketing', 'AI Automation', 'Prompt Engineering'].map(o => <option key={o} value={o} className="bg-bg-deep">{o}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Bootcamp Type */}
+          <div className="space-y-4 pt-4">
+            <label className="text-sm font-semibold text-slate-200">Workshop Mode *</label>
+            <div className="grid grid-cols-2 gap-4">
+              {['online', 'offline'].map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setFormData(p => ({ ...p, bootcampType: type }))}
+                  className={`p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 ${
+                    formData.bootcampType === type 
+                    ? 'border-brand-cyan bg-brand-cyan/5 text-white shadow-lg shadow-brand-cyan/10' 
+                    : 'border-white/10 bg-white/5 text-text-secondary hover:border-white/20'
+                  }`}
+                >
+                  <span className="font-bold capitalize">{type} Batch</span>
+                  <span className="text-[10px] opacity-60">{type === 'online' ? '8-9 May 2026' : 'Upcoming in Patna'}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="btn-orange w-full py-5 text-xl font-black uppercase tracking-wider"
             >
-              By registering, you agree to our terms and conditions
-            </motion.p>
-          </form>
-        </div>
+              {isLoading ? (
+                <span className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                'Secure My Spot Now'
+              )}
+            </button>
+            <p className="text-center text-[10px] text-text-secondary mt-4 opacity-60">
+              By registering, you agree to our Terms of Service and Privacy Policy.
+            </p>
+          </div>
+        </form>
       </motion.div>
     </div>
   )

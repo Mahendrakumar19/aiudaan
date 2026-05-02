@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { staggerContainerVariants, staggerItemVariants } from '@/lib/animationVariants'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 const activities = [
   'Create resume',
@@ -10,8 +11,9 @@ const activities = [
 ]
 
 export function StudentActivity() {
+  const { t } = useLanguage()
   return (
-    <section className="relative py-24 px-6 overflow-hidden">
+    <section className='relative py-12 sm:py-20 md:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden'>
       <div className="mx-auto max-w-2xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -21,9 +23,9 @@ export function StudentActivity() {
           className="text-center mb-12"
         >
           <h2 className="text-6xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight">
-            Student
+            {t('home.student')}
             <span className='block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent'>
-              Activity
+              {t('home.activity')}
             </span>
           </h2>
         </motion.div>
@@ -35,16 +37,16 @@ export function StudentActivity() {
           viewport={{ once: true }}
           className='relative group'
         >
-          <div className='absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-2xl blur-3xl opacity-50' />
-          <div className='relative backdrop-blur-xl bg-white/5 border border-purple-400/30 rounded-2xl p-10 shadow-2xl'>
+          <div className='absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl blur-3xl opacity-50' />
+          <div className='relative backdrop-blur-xl bg-slate-900/50 border border-white/10 rounded-2xl p-10 shadow-2xl shadow-purple-500/5'>
             <div className="text-center mb-6">
               <motion.div
                 whileHover={{ scale: 1.1 }}
-                className="w-16 h-16 bg-gradient-to-br from-purple-500/30 to-pink-500/30 border border-white/20 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-lg"
+                className="w-16 h-16 bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-white/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 shadow-md"
               >
                 🎯
               </motion.div>
-              <h3 className="text-3xl font-bold text-white">Hands-on Learning</h3>
+              <h3 className="text-3xl font-bold text-white">{t('home.handsOnLearning')}</h3>
             </div>
 
             <motion.div
@@ -58,7 +60,7 @@ export function StudentActivity() {
                 <motion.div
                   key={activity}
                   variants={staggerItemVariants}
-                  className="flex items-center gap-3 text-white/90 p-3 backdrop-blur-lg bg-white/5 border border-white/10 rounded-lg hover:border-white/30 transition"
+                  className="flex items-center gap-3 text-slate-300 p-3 backdrop-blur-lg bg-slate-800/50 border border-white/10 rounded-lg hover:border-purple-400/30 shadow-md transition"
                 >
                   <span className='w-2 h-2 rounded-full bg-gradient-to-r from-purple-400 to-pink-400 flex-shrink-0' />
                   <span className="font-medium capitalize">{activity}</span>

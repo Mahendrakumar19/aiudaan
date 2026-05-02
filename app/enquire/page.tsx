@@ -16,10 +16,10 @@ export default function EnquirePage() {
 
         {/* Animated particles effect */}
         <div className="absolute inset-0">
-          <div className="absolute top-20 left-10 w-2 h-2 bg-cyan-400 rounded-full opacity-30 animate-pulse" />
-          <div className="absolute top-40 right-20 w-2 h-2 bg-purple-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '0.5s' }} />
-          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-pink-400 rounded-full opacity-25 animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-cyan-400 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1.5s' }} />
+          <div className="absolute top-20 left-10 w-2 h-2 bg-cyan-400 rounded-full opacity-30" />
+          <div className="absolute top-40 right-20 w-2 h-2 bg-purple-400 rounded-full opacity-20" />
+          <div className="absolute bottom-40 left-1/3 w-2 h-2 bg-pink-400 rounded-full opacity-25" />
+          <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-cyan-400 rounded-full opacity-20" />
         </div>
       </div>
 

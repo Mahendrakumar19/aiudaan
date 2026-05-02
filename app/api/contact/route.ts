@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
 
 // Mock email sending - in production you'd use a service like SendGrid, Nodemailer, etc.
 export async function POST(request: NextRequest) {
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
 
     // Here you would send the email using a service like SendGrid
     // For now, we'll just simulate success
-    console.log('Contact form submission:', { name, email, message })
+    logger.info('Contact form submission received', { name, email })
 
     return NextResponse.json(
       {
@@ -35,7 +36,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Contact form error:', error)
+    logger.error('Contact form error', error)
     return NextResponse.json(
       { message: 'Failed to send message' },
       { status: 500 }

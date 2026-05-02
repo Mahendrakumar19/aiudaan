@@ -1,76 +1,115 @@
 'use client'
 
-import Image from 'next/image'
 import Link from 'next/link'
-import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import LanguageSwitcher from './language-switcher'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export function Navbar() {
+  const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { t } = useLanguage()
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const navLinks = [
+    { href: '/', label: t('nav.home') },
+    { href: '/#tracks', label: t('nav.courses') },
+    { href: '/tools', label: t('common.master') },
+    { href: '/journey', label: t('nav.journey') },
+    { href: '/blog', label: t('nav.blog') },
+  ]
 
   return (
-    <nav className='w-full bg-slate-950/95 backdrop-blur-xl border-b border-white/20 px-4 pt-6 sm:px-6 lg:px-8 shadow-lg shadow-cyan-500/10'>
-      <div className='mx-auto max-w-7xl rounded-full border border-cyan-400/30 bg-gradient-to-r from-slate-950/80 to-slate-900/80 shadow-xl'>
-        <div className='relative flex h-28 items-center justify-between px-4 sm:px-6'>
-          {/* Logo left */}
-          <Link href='/' className='flex items-center gap-4 text-white h-full'>
-            <div className='flex items-center justify-center h-20 w-20 rounded-full bg-white overflow-hidden border-2 border-white/50 shadow-lg'>
-              <Image
-                src='/images/logo.png'
-                alt='AI NG LMS logo'
-                width={200}
-                height={60}
-                className='h-full w-full object-contain p-2'
-                priority
-              />
-            </div>
-            <span className='hidden text-3xl font-bold tracking-tight text-white sm:inline bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent'>AI Learn NG</span>
-          </Link>
-
-          {/* Menu center */}
-          <div className='absolute left-1/2 hidden -translate-x-1/2 items-center gap-10 md:flex'>
-            <Link href='/' className='text-xl font-bold text-white transition hover:text-cyan-300 whitespace-nowrap'>
-              Home
-            </Link>
-            <Link href='/#about' className='text-xl font-bold text-white transition hover:text-cyan-300 whitespace-nowrap'>
-              About
-            </Link>
-            <Link href='/#questions' className='text-xl font-bold text-white transition hover:text-cyan-300 whitespace-nowrap'>
-              Contact
-            </Link>
+    <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${scrolled ? 'nav-blur py-3 shadow-2xl' : 'bg-transparent py-6'}`}>
+      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 bg-brand-blue rounded-xl flex items-center justify-center font-bold text-xl overflow-hidden shadow-lg shadow-brand-blue/20 group-hover:scale-110 transition-transform">
+             <span className="text-white">🚀</span>
           </div>
-
-          {/* Mobile menu button */}
-          <button
-            className='text-white md:hidden'
-            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            aria-label='Toggle navigation menu'
-          >
-            <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16M4 18h16' />
-            </svg>
-          </button>
+          <div className="flex flex-col">
+            <span className="font-syne font-bold text-lg tracking-tight leading-none text-white">AI UDAAN</span>
+            <span className="text-[10px] font-bold text-brand-orange tracking-[0.2em] leading-none mt-1 uppercase">Bootcamp</span>
+          </div>
+        </Link>
+        
+        {/* Desktop Nav */}
+        <div className="hidden lg:flex items-center gap-10">
+          {navLinks.map((link) => (
+            <Link 
+              key={link.label} 
+              href={link.href} 
+              className="text-sm font-semibold text-text-secondary hover:text-brand-cyan transition-colors relative group"
+            >
+              {link.label}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-cyan transition-all group-hover:w-full" />
+            </Link>
+          ))}
         </div>
 
-        {isMobileMenuOpen && (
-          <motion.div
-            className='rounded-b-3xl border-t border-white/20 px-4 pb-4 pt-2 md:hidden bg-slate-950/80 backdrop-blur-lg'
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+        {/* Action Button */}
+        <div className="flex items-center gap-4">
+          <div className="hidden lg:block mr-2">
+            <LanguageSwitcher />
+          </div>
+          
+          <Link href="/register" className="hidden sm:block">
+            <button className="btn-orange px-6 py-2.5 text-xs font-black uppercase tracking-wider shadow-lg">
+              {t('nav.register')}
+            </button>
+          </Link>
+          
+          {/* Mobile Toggle */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden w-10 h-10 flex flex-col items-center justify-center gap-1.5 glass rounded-lg"
           >
-            <Link href='/' className='block py-3 text-lg font-medium text-white hover:text-cyan-300'>
-              Home
-            </Link>
-            <Link href='/#about' className='block py-3 text-lg font-medium text-white hover:text-cyan-300'>
-              About
-            </Link>
-            <Link href='/#questions' className='block py-3 text-lg font-medium text-white hover:text-cyan-300'>
-              Contact
-            </Link>
+            <span className={`w-5 h-0.5 bg-white transition-all ${isMobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
+            <span className={`w-5 h-0.5 bg-white transition-all ${isMobileMenuOpen ? 'opacity-0' : ''}`} />
+            <span className={`w-5 h-0.5 bg-white transition-all ${isMobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-full left-0 right-0 bg-bg-deep/95 backdrop-blur-2xl border-b border-white/10 p-6 lg:hidden"
+          >
+            <div className="flex flex-col gap-6">
+              {navLinks.map((link) => (
+                <Link 
+                  key={link.label} 
+                  href={link.href} 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-lg font-bold text-text-secondary hover:text-brand-cyan"
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
+                <button className="btn-orange w-full py-4 text-sm font-black uppercase">
+                  {t('nav.register')}
+                </button>
+              </Link>
+              
+              <div className="pt-4 border-t border-white/10 flex justify-center">
+                <LanguageSwitcher />
+              </div>
+            </div>
           </motion.div>
         )}
-      </div>
+      </AnimatePresence>
     </nav>
   )
 }

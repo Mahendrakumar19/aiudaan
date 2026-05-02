@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
+import { cacheOrFetch } from '@/lib/api-cache'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -10,7 +12,35 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1')
     const pageSize = 10
 
-    // Build filter
+    // Cache only default/first page listing (no filters)
+    const shouldCache = !search && !category && !level && page === 1
+    
+    if (shouldCache) {
+      const cached = await cacheOrFetch(
+        'courses:listing:page1',
+        async () => {
+          const total = await prisma.course.count()
+          const courses = await prisma.course.findMany({
+            take: pageSize,
+            orderBy: { createdAt: 'desc' },
+          })
+          return { courses, total }
+        },
+        3600000 // 1 hour
+      )
+
+      return NextResponse.json({
+        courses: cached.courses,
+        pagination: {
+          page,
+          pageSize,
+          total: cached.total,
+          pages: Math.ceil(cached.total / pageSize),
+        },
+      })
+    }
+
+    // Build filter for non-cached requests
     const where: any = {}
     if (search) {
       where.OR = [
@@ -42,7 +72,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('Get courses error:', error)
+    logger.error('Get courses error', error)
     return NextResponse.json(
       { message: 'Failed to fetch courses' },
       { status: 500 }
@@ -78,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(course, { status: 201 })
   } catch (error) {
-    console.error('Create course error:', error)
+    logger.error('Create course error', error)
     return NextResponse.json(
       { message: 'Failed to create course' },
       { status: 500 }

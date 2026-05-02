@@ -1,30 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
+import { logger } from '@/lib/logger'
 import { otpService } from '@/lib/otpService'
 
-const gmailUser = process.env.GMAIL_USER
-const gmailAppPassword = process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, '')
+const smtpHost = process.env.SMTP_HOST
+const smtpPort = process.env.SMTP_PORT
+const smtpSecure = process.env.SMTP_SECURE === 'true'
+const smtpUser = process.env.SMTP_USER
+const smtpPass = process.env.SMTP_PASS
 
 const transporter =
-  gmailUser && gmailAppPassword
+  smtpHost && smtpPort && smtpUser && smtpPass
     ? nodemailer.createTransport({
-        service: 'gmail',
+        host: smtpHost,
+        port: Number(smtpPort),
+        secure: smtpSecure,
         auth: {
-          user: gmailUser,
-          pass: gmailAppPassword,
+          user: smtpUser,
+          pass: smtpPass,
         },
       })
     : null
 
 async function sendOtpEmail(email: string, otp: string): Promise<boolean> {
-  if (!transporter || !gmailUser) {
-    console.error('Gmail SMTP is not configured. Check GMAIL_USER and GMAIL_APP_PASSWORD.')
+  if (!transporter || !smtpUser) {
+    logger.error('Zoho Mail SMTP is not configured. Check SMTP_HOST, SMTP_PORT, SMTP_USER and SMTP_PASS.')
     return false
   }
 
   try {
     await transporter.sendMail({
-      from: `AI Udaan Bootcamp <${gmailUser}>`,
+      from: `AI Udaan Bootcamp <${smtpUser}>`,
       to: email,
       subject: 'Your AI Udaan Bootcamp OTP',
       html: `
@@ -41,7 +47,7 @@ async function sendOtpEmail(email: string, otp: string): Promise<boolean> {
 
     return true
   } catch (error) {
-    console.error('Email send error:', error)
+    logger.error('Email send error', error)
     return false
   }
 }
@@ -84,7 +90,7 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    console.error('Send OTP error:', error)
+    logger.error('Send OTP error', error)
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -11,18 +11,32 @@ generator client {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  name      String
-  email     String     @unique
-  password  String
-  image     String?
-  bio       String?
-  role      String     @default("student")
+  id               String     @id @default(cuid())
+  name             String
+  email            String     @unique
+  password         String
+  image            String?
+  bio              String?
+  role             String     @default("student")
+  
+  // Registration details
+  mobile           String?
+  address          String?
+  state            String?
+  district         String?
+  class            String?
+  aiDomain         String?
+  otherAiDomain    String?
+  source           String?
+  interest         String?
+  bootcampType     String?    // "offline" or "online"
+  
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   
   enrollments Enrollment[]
   progress    Progress[]
+  payments    Payment[]
 }
 
 model Course {
@@ -74,4 +88,42 @@ model Progress {
   course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
   
   @@unique([userId, courseId])
+}
+
+model Payment {
+  id            String     @id @default(cuid())
+  userId        String?
+  email         String
+  name          String
+  mobile        String?    // Phone number from registration
+  amount        Float
+  currency      String     @default("INR")
+  plan          String     @default("basic") // "basic" or "standard"
+  bootcampType  String?    // "offline" or "online"
+  status        String     @default("pending") // "success", "failed", "pending"
+  razorpayOrderId String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+  errorMessage  String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  
+  user          User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model UtmTracking {
+  id        String   @id @default(cuid())
+  source    String?
+  medium    String?
+  campaign  String?
+  term      String?
+  content   String?
+  timestamp DateTime @default(now())
+  metadata  Json?
+
+  @@index([timestamp])
 }

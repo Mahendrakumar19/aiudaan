@@ -1,10 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 export function AIQuoteSection() {
+  const { t } = useLanguage()
   return (
-    <section className='relative py-32 px-6 overflow-hidden'>
+    <section className='relative py-12 sm:py-20 md:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden'>
       <div className='mx-auto max-w-4xl'>
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
@@ -14,27 +16,27 @@ export function AIQuoteSection() {
           className='relative'
         >
           {/* Glow background */}
-          <div className='absolute inset-0 bg-gradient-to-r from-cyan-500/30 via-purple-500/30 to-pink-500/30 blur-3xl rounded-3xl opacity-60' />
+          <div className='hidden' />
 
           {/* Content */}
-          <div className='relative backdrop-blur-2xl bg-white/5 border border-white/20 rounded-3xl p-12 md:p-16'>
+          <div className='relative bg-white border border-slate-200 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 lg:p-16 shadow-lg'>
             <motion.div
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 4, repeat: Infinity }}
               className='text-center'
             >
-              <p className='text-3xl md:text-5xl font-bold leading-relaxed mb-8'>
-                <span className='bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent'>
-                  AI is not the future.
+              <p className='text-lg sm:text-2xl md:text-3xl lg:text-5xl font-bold leading-relaxed mb-6 sm:mb-8'>
+                <span className='bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 bg-clip-text text-transparent'>
+                  {t('home.quotePrefix')}
                 </span>
                 <br />
-                <span className='text-white'>
-                  It's happening right now.
+                <span className='text-slate-900'>
+                  {t('home.quoteSuffix')}
                 </span>
               </p>
 
-              <p className='text-2xl text-white/70'>
-                Master it today, lead tomorrow.
+              <p className='text-base sm:text-lg md:text-2xl text-slate-600'>
+                {t('home.quoteCta')}
               </p>
             </motion.div>
           </div>

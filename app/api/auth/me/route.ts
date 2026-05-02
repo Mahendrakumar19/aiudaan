@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import { verifyToken, extractTokenFromHeader } from '@/lib/auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(userWithoutPassword)
   } catch (error) {
-    console.error('Get user error:', error)
+    logger.error('Get user error', error)
     return NextResponse.json(
       { message: 'Failed to get user' },
       { status: 500 }

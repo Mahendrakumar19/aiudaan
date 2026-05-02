@@ -1,240 +1,166 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { fadeUpVariants } from '@/lib/animationVariants'
 import { useSearchParams } from 'next/navigation'
+import { useToast } from '@/hooks/useToast'
+import { useLanguage } from '@/lib/i18n/LanguageContext'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
-  const name = searchParams.get('name') || 'Learner'
-  const email = searchParams.get('email') || ''
-  const mobile = searchParams.get('mobile') || ''
+  const name = searchParams?.get('name') || 'Learner'
+  const email = searchParams?.get('email') || ''
+  const mobile = searchParams?.get('mobile') || ''
+  const bootcampType = searchParams?.get('bootcampType') || 'online'
+  const [selectedPlan, setSelectedPlan] = useState<'basic' | 'standard' | 'online' | null>(null)
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false)
+  const [paymentCompleted, setPaymentCompleted] = useState(false)
+  const { addToast } = useToast()
+  const { t } = useLanguage()
+
+  const allPlans = {
+    offline: [
+      {
+        id: 'basic',
+        name: t('success.withoutAccommodation'),
+        price: 999,
+        duration: '₹999',
+        descriptionKey: 'success.liteDescription',
+      },
+      {
+        id: 'standard',
+        name: t('success.withAccommodation'),
+        price: 2499,
+        duration: '₹2,499',
+        descriptionKey: 'success.plusDescription',
+      },
+    ],
+    online: [
+      {
+        id: 'online',
+        name: t('success.onlineBootcamp') || 'Online Bootcamp',
+        price: 499,
+        duration: '₹499',
+        descriptionKey: 'success.onlineDescription',
+      },
+    ],
+  }
+
+  const plans = bootcampType === 'online' ? allPlans.online : allPlans.offline
+
+  const handlePayment = async (plan: 'basic' | 'standard' | 'online') => {
+    setSelectedPlan(plan)
+    setIsPaymentProcessing(true)
+    try {
+      const orderResponse = await fetch('/api/payments/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, email, name, mobile, bootcampType }),
+      })
+      const orderData = await orderResponse.json()
+      if (!orderResponse.ok) throw new Error(orderData.message)
+      const { orderId, amount } = orderData
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.async = true
+      document.body.appendChild(script)
+      script.onload = () => {
+        const razorpayOptions = {
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+          amount,
+          currency: 'INR',
+          name: 'AI Udaan Bootcamp',
+          description: `Registration Fee`,
+          order_id: orderId,
+          prefill: { name, email, contact: mobile },
+          handler: async (response: any) => {
+            try {
+              const verifyResponse = await fetch('/api/payments/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...response, email, name, mobile, plan, bootcampType }),
+              })
+              if (!verifyResponse.ok) throw new Error('Verification failed')
+              setPaymentCompleted(true)
+              addToast('Payment successful!', 'success')
+            } catch (e) {
+              addToast('Verification failed', 'error')
+            } finally {
+              setIsPaymentProcessing(false)
+            }
+          },
+          theme: { color: '#004AAD' },
+        }
+        new (window as any).Razorpay(razorpayOptions).open()
+      }
+    } catch (error: any) {
+      addToast(error.message, 'error')
+      setIsPaymentProcessing(false)
+    }
+  }
+
+  if (paymentCompleted) {
+    return (
+      <div className="min-h-screen relative flex items-center justify-center py-20 px-4">
+        <div className="bg-mesh" />
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass p-12 rounded-[3rem] text-center max-w-xl border-green-500/20">
+          <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-8">
+             <span className="text-4xl">✅</span>
+          </div>
+          <h1 className="font-syne text-4xl font-bold mb-4">Payment Successful!</h1>
+          <p className="text-text-secondary mb-8">Welcome aboard, {name}! Your registration for AI Udaan Bootcamp is now fully confirmed.</p>
+          <div className="flex flex-col gap-4">
+            <a href="https://chat.whatsapp.com/JClGBQQiPW00xf0YkFWjk7" target="_blank" className="btn-primary">Join WhatsApp Group</a>
+            <Link href="/" className="glass py-4 rounded-xl font-bold">Back to Home</Link>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden flex items-center justify-center py-20 px-4">
-      {/* Animated gradient backgrounds */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        {/* Top gradient blob */}
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl opacity-60 animate-pulse" />
-
-        {/* Bottom gradient blob */}
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/20 to-pink-500/20 rounded-full blur-3xl opacity-60 animate-pulse" />
-
-        {/* Center glow */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 rounded-full blur-3xl opacity-40" />
-      </div>
-
-      {/* Content */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7 }}
-        className="w-full max-w-2xl relative z-10 text-center"
-      >
-        {/* Glass Card */}
-        <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 md:p-16 shadow-2xl shadow-cyan-500/10">
-          {/* Success Icon */}
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5, type: 'spring' }}
-            className="flex justify-center mb-8"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full opacity-75 blur-lg animate-pulse" />
-              <div className="relative w-24 h-24 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-full flex items-center justify-center">
-                <motion.svg
-                  className="w-12 h-12 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  initial={{ pathLength: 0 }}
-                  animate={{ pathLength: 1 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  strokeWidth={2}
-                >
-                  <motion.path
-                    d="M5 13l4 4L19 7"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </motion.svg>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Main Heading with Username */}
-          <motion.h1
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.3 }}
-            className="text-4xl md:text-5xl font-black mb-2"
-          >
-            <span className="bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Registration सफल! 🎉
-            </span>
-          </motion.h1>
-
-          {/* Welcome message with name */}
-          <motion.p
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.4 }}
-            className="text-lg md:text-2xl text-cyan-300 mb-6 font-semibold"
-          >
-            Welcome, <span className="text-white">{name}</span>! 👋
-          </motion.p>
-
-          {/* Subtitle */}
-          <motion.p
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.45 }}
-            className="text-base md:text-lg text-gray-300 mb-8"
-          >
-            You're officially registered for the AI Udaan Bootcamp 2026
-          </motion.p>
-
-          {/* Registration Details Card */}
-          <motion.div
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.5 }}
-            className="bg-white/5 border border-cyan-400/30 rounded-xl p-6 mb-8 text-left"
-          >
-            <h3 className="text-cyan-400 font-bold text-lg mb-4">📋 Your Registration Details</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                <span className="text-gray-400 text-base">Name:</span>
-                <span className="text-white font-semibold text-base">{name}</span>
-              </div>
-              {email && (
-                <div className="flex justify-between items-center border-b border-white/10 pb-3">
-                  <span className="text-gray-400 text-base">Email:</span>
-                  <span className="text-white font-semibold truncate text-base">{email}</span>
-                </div>
-              )}
-              {mobile && (
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-400 text-base">Mobile:</span>
-                  <span className="text-white font-semibold text-base">{mobile}</span>
-                </div>
-              )}
-            </div>
-          </motion.div>
-
-          {/* Bootcamp Schedule */}
-          <motion.div
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.55 }}
-            className="bg-white/5 border border-purple-400/30 rounded-xl p-6 mb-8 text-left"
-          >
-            <h3 className="text-purple-400 font-bold text-lg mb-4">📅 Bootcamp Schedule</h3>
-            <div className="space-y-3 text-gray-300 text-base">
-              <div className="flex gap-3">
-                <span className="text-purple-400 font-bold">📌</span>
-                <span><strong>Duration:</strong> 2 Days Intensive</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-purple-400 font-bold">🏫</span>
-                <span><strong>Location:</strong> Buddha Institute of Technology, Gaya</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-purple-400 font-bold">👥</span>
-                <span><strong>Target:</strong> Class 10th & 12th Students</span>
-              </div>
-              <div className="flex gap-3">
-                <span className="text-purple-400 font-bold">🎓</span>
-                <span><strong>Certificate:</strong> Included with completion</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* What's Next */}
-          <motion.div
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.6 }}
-            className="space-y-4 mb-10"
-          >
-            <h3 className="text-cyan-400 font-bold text-lg">🚀 What's Next?</h3>
-            <div className="border-t border-white/20 pt-6">
-              <ul className="text-gray-300 space-y-3 text-left max-w-md mx-auto">
-                <li className="flex items-start gap-3">
-                  <span className="text-cyan-400 font-bold mt-1 text-lg">✓</span>
-                  <span><strong>Check your email</strong> for bootcamp details and login credentials</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-cyan-400 font-bold mt-1 text-lg">✓</span>
-                  <span><strong>Join our WhatsApp group</strong> for real-time updates and announcements</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-cyan-400 font-bold mt-1 text-lg">✓</span>
-                  <span><strong>Prepare in advance</strong> with resources we'll share before the bootcamp</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-cyan-400 font-bold mt-1 text-lg">✓</span>
-                  <span><strong>Bring a laptop</strong> with stable internet connection for the session</span>
-                </li>
-              </ul>
-            </div>
-          </motion.div>
-
-          {/* CTA Buttons */}
-          <motion.div
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.7 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link href="/" className="group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <button className="relative bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600 text-white px-8 py-4 text-lg rounded-xl font-bold border border-cyan-400/30 shadow-xl shadow-cyan-500/20 transition w-full">
-                Back to Home
-              </button>
-            </Link>
-
-            <a href="https://wa.me/919999999999" target="_blank" rel="noopener noreferrer" className="group relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <button className="relative bg-white/10 border-2 border-white/30 hover:bg-green-500/10 text-white px-8 py-4 text-lg rounded-xl font-bold shadow-lg transition w-full">
-                Join WhatsApp Group
-              </button>
-            </a>
-          </motion.div>
-
-          {/* Footer message */}
-          <motion.p
-            variants={fadeUpVariants}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.8 }}
-            className="text-gray-400 text-sm mt-8"
-          >
-            Any questions? Contact us on WhatsApp or email. We're here to help! 💙
-          </motion.p>
+    <div className="min-h-screen relative flex items-center justify-center py-20 px-4">
+      <div className="bg-mesh" />
+      <div className="grid-lines" />
+      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-4xl glass p-10 md:p-16 rounded-[3rem]">
+        <div className="text-center mb-12">
+           <div className="text-4xl mb-4">🎉</div>
+           <h1 className="font-syne text-4xl md:text-5xl font-bold mb-2">Registration <span className="brand-gradient-text">Successful</span></h1>
+           <p className="text-text-secondary">Almost there! Select your plan and complete payment to secure your seat.</p>
         </div>
 
-        {/* Floating decorative elements */}
-        <motion.div
-          className="absolute -top-20 -left-20 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute -bottom-20 -right-20 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"
-          animate={{ y: [0, 20, 0] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {plans.map((plan) => (
+            <motion.div
+              key={plan.id}
+              whileHover={{ y: -5 }}
+              onClick={() => setSelectedPlan(plan.id as any)}
+              className={`glass p-8 rounded-3xl border-2 transition-all cursor-pointer ${selectedPlan === plan.id ? 'border-brand-cyan bg-brand-cyan/5' : 'border-white/5'}`}
+            >
+              <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+              <div className="text-3xl font-black mb-4 orange-gradient-text">{plan.duration}</div>
+              <p className="text-text-secondary text-sm mb-8 leading-relaxed">{t(plan.descriptionKey)}</p>
+              <button 
+                onClick={() => handlePayment(plan.id as any)}
+                disabled={isPaymentProcessing}
+                className="btn-primary w-full py-3.5 text-sm"
+              >
+                {isPaymentProcessing && selectedPlan === plan.id ? 'Processing...' : 'Pay & Confirm'}
+              </button>
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
+          <h4 className="font-bold mb-4 text-brand-cyan">Your Details</h4>
+          <div className="grid grid-cols-2 gap-y-4 text-sm">
+            <span className="text-text-secondary">Name:</span> <span className="font-bold">{name}</span>
+            <span className="text-text-secondary">Email:</span> <span className="font-bold truncate">{email}</span>
+            <span className="text-text-secondary">Type:</span> <span className="font-bold capitalize">{bootcampType}</span>
+          </div>
+        </div>
       </motion.div>
     </div>
   )
@@ -242,11 +168,7 @@ function SuccessContent() {
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading...</div>
-      </div>
-    }>
+    <Suspense fallback={<div className="min-h-screen bg-bg-deep flex items-center justify-center text-white">Loading...</div>}>
       <SuccessContent />
     </Suspense>
   )

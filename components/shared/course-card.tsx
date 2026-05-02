@@ -35,6 +35,7 @@ export const CourseCard = ({
   students,
 }: CourseCardProps) => {
   const [modalOpen, setModalOpen] = useState(false);
+  const [isClosed, setIsClosed] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', phone: '' });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,6 +47,10 @@ export const CourseCard = ({
     // TODO: handle form submission (API call, etc.)
     setModalOpen(false);
   };
+
+  if (isClosed) {
+    return null;
+  }
 
   return (
     <>
@@ -66,6 +71,19 @@ export const CourseCard = ({
             <div className='absolute left-3 top-3 z-10 rounded-full border border-slate-200 bg-white/95 px-3 py-1 text-xs font-medium text-slate-600'>
               {level}
             </div>
+            {/* Close Button */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                setIsClosed(true);
+              }}
+              className='absolute right-3 top-3 z-10 rounded-full bg-white/95 border border-slate-200 p-1.5 hover:bg-red-50 hover:border-red-300 transition-colors'
+              title='Close card'
+            >
+              <svg className='w-4 h-4 text-slate-600 hover:text-red-600' fill='currentColor' viewBox='0 0 20 20'>
+                <path fillRule='evenodd' d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z' clipRule='evenodd' />
+              </svg>
+            </button>
             {image ? (
               <Image
                 src={image}

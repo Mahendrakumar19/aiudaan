@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db'
+import { logger } from '@/lib/logger'
 import { verifyPassword, generateToken } from '@/lib/auth/jwt'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       token,
     })
   } catch (error) {
-    console.error('Login error:', error)
+    logger.error('Login error', error)
     return NextResponse.json(
       { message: 'Login failed' },
       { status: 500 }

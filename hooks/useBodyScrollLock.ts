@@ -7,16 +7,28 @@ import { useEffect } from 'react'
 export function useBodyScrollLock(isLocked: boolean) {
   useEffect(() => {
     if (isLocked) {
-      // Save current scroll position
-      const scrollY = window.scrollY
-      document.body.style.overflow = 'hidden'
-      document.body.style.paddingRight = 'var(--scrollbar-width, 0px)'
-      
-      return () => {
-        document.body.style.overflow = 'unset'
-        document.body.style.paddingRight = '0px'
-        // Restore scroll position
-        window.scrollTo(0, scrollY)
+      try {
+        // Save current scroll position
+        if (typeof window !== 'undefined' && window.scrollY !== undefined) {
+          const scrollY = window.scrollY
+          document.body.style.overflow = 'hidden'
+          document.body.style.paddingRight = 'var(--scrollbar-width, 0px)'
+          
+          return () => {
+            try {
+              document.body.style.overflow = 'unset'
+              document.body.style.paddingRight = '0px'
+              // Restore scroll position
+              if (typeof window !== 'undefined' && window.scrollTo) {
+                window.scrollTo(0, scrollY)
+              }
+            } catch (error) {
+              console.error('Error restoring scroll position:', error)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error locking scroll:', error)
       }
     }
     return undefined
