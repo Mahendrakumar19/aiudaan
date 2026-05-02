@@ -131,9 +131,7 @@ export default function RootLayout({
       <body className='bg-slate-950 font-inter text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200'>
         <ClientProviders>
           <UTMTracker>
-            <div className='fixed inset-x-0 top-0 z-50'>
-              <Navbar />
-            </div>
+            <Navbar />
           </UTMTracker>
           <main className='pt-24 bg-transparent relative z-10'>
             {children}

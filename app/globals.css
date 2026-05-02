@@ -48,6 +48,7 @@
     radial-gradient(at 100% 100%, rgba(0, 221, 235, 0.05) 0px, transparent 50%),
     radial-gradient(at 0% 100%, rgba(124, 58, 237, 0.05) 0px, transparent 50%);
   filter: blur(80px);
+  pointer-events: none;
 }
 
 .grid-lines {
@@ -59,6 +60,7 @@
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   mask-image: radial-gradient(circle at center, black, transparent 80%);
+  pointer-events: none;
 }
 
 /* Glassmorphism */
