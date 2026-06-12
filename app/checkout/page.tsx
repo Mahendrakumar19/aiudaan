@@ -181,110 +181,133 @@ export default function CheckoutPage() {
 
   if (!userData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 to-slate-900">
-        <div className="text-white">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-4 text-slate-600 shadow-sm">
+          Loading your registration...
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
-      {/* Animated gradients */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 rounded-full blur-3xl opacity-60" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-purple-500/20 to-pink-500/20 rounded-full blur-3xl opacity-60" />
+    <div className="min-h-screen bg-white relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-50 rounded-full blur-3xl opacity-80" />
+        <div className="absolute -bottom-28 -left-24 w-72 h-72 bg-amber-50 rounded-full blur-3xl opacity-80" />
       </div>
 
-      <div className="relative z-10 max-w-2xl mx-auto">
-        {/* Header */}
+      <div className="relative z-10 max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
           className="text-center mb-12"
         >
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4">
-            Complete Your Registration
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[0.28em] text-slate-500 shadow-sm">
+            Secure checkout
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-slate-950 mb-4 mt-5">
+            Complete your registration
           </h1>
-          <p className="text-lg text-slate-300">
-            Secure payment via Razorpay
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
+            Review your details and finish payment with Razorpay. This checkout is intentionally calm, clear, and easy to complete on mobile.
           </p>
         </motion.div>
 
-        {/* Summary Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-8 md:p-10 shadow-2xl mb-6"
+          transition={{ duration: 0.45, delay: 0.05, ease: 'easeOut' }}
+          className="bg-white border border-slate-200 rounded-[2rem] p-6 md:p-8 shadow-[0_16px_50px_rgba(15,23,42,0.06)] mb-6"
         >
-          {/* Registration Details */}
-          <div className="space-y-4 mb-8">
-            <h2 className="text-xl font-bold text-white mb-6">Registration Summary</h2>
+          <div className="grid lg:grid-cols-[1.02fr_0.98fr] gap-8 items-start">
+            <div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-brand-blue font-black">₹</div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-950">Registration summary</h2>
+                  <p className="text-sm text-slate-500">Your plan and personal details</p>
+                </div>
+              </div>
 
-            <div className="flex justify-between items-center pb-4 border-b border-white/10">
-              <span className="text-slate-300">Name</span>
-              <span className="text-white font-semibold">{userData.name}</span>
+              <div className="space-y-4 rounded-[1.5rem] bg-slate-50 border border-slate-200 p-5">
+                <div className="flex justify-between items-center gap-4 pb-4 border-b border-slate-200">
+                  <span className="text-slate-500">Name</span>
+                  <span className="text-slate-950 font-semibold text-right">{userData.name}</span>
+                </div>
+
+                <div className="flex justify-between items-center gap-4 pb-4 border-b border-slate-200">
+                  <span className="text-slate-500">Email</span>
+                  <span className="text-slate-950 font-semibold text-right break-all">{userData.email}</span>
+                </div>
+
+                <div className="flex justify-between items-center gap-4 pb-4 border-b border-slate-200">
+                  <span className="text-slate-500">Phone</span>
+                  <span className="text-slate-950 font-semibold">+91 {userData.phone}</span>
+                </div>
+
+                <div className="flex justify-between items-center gap-4 pb-4 border-b border-slate-200">
+                  <span className="text-slate-500">Plan</span>
+                  <span className="text-slate-950 font-semibold text-right">
+                    {userData.plan === 'standard' ? 'With Accommodation' : 'Without Accommodation'}
+                  </span>
+                </div>
+
+                <div className="flex justify-between items-center pt-4">
+                  <span className="text-lg font-bold text-slate-950">Amount to pay</span>
+                  <span className="text-3xl font-black text-brand-blue">
+                    ₹{userData.plan === 'standard' ? '2,499' : '999'}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center pb-4 border-b border-white/10">
-              <span className="text-slate-300">Email</span>
-              <span className="text-white font-semibold">{userData.email}</span>
-            </div>
+            <div className="space-y-4">
+              <div className="rounded-[1.5rem] bg-white border border-slate-200 p-5 shadow-sm">
+                <h3 className="text-sm font-bold uppercase tracking-[0.24em] text-slate-500">Checkout flow</h3>
+                <div className="mt-4 space-y-3">
+                  {[
+                    'Confirm your details',
+                    'Open Razorpay payment',
+                    'Verify and redirect to success',
+                  ].map((item, index) => (
+                    <div key={item} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center text-sm font-bold text-slate-700">0{index + 1}</div>
+                      <span className="text-sm text-slate-600">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-            <div className="flex justify-between items-center pb-4 border-b border-white/10">
-              <span className="text-slate-300">Phone</span>
-              <span className="text-white font-semibold">+91 {userData.phone}</span>
-            </div>
+              {error && (
+                <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm leading-relaxed">
+                  {error}
+                </div>
+              )}
 
-            <div className="flex justify-between items-center pb-4 border-b border-white/10">
-              <span className="text-slate-300">Plan</span>
-              <span className="text-white font-semibold">
-                {userData.plan === 'standard'
-                  ? 'With Accommodation'
-                  : 'Without Accommodation'}
-              </span>
-            </div>
+              <button
+                onClick={createOrder}
+                disabled={isLoading}
+                className="w-full px-6 py-4 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-brand-blue to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-[0_14px_30px_rgba(37,99,235,0.18)]"
+              >
+                {isLoading ? 'Processing payment...' : 'Pay now with Razorpay'}
+              </button>
 
-            <div className="flex justify-between items-center pt-4 border-t-2 border-cyan-400/30">
-              <span className="text-lg font-bold text-white">Amount to Pay</span>
-              <span className="text-2xl font-black text-cyan-400">
-                ₹{userData.plan === 'standard' ? '2,499' : '999'}
-              </span>
+              <p className="text-xs text-slate-500 text-center leading-relaxed">
+                Secure payment powered by Razorpay. Your details are encrypted and your registration remains protected.
+              </p>
             </div>
           </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500/50 text-red-300 text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Payment Button */}
-          <button
-            onClick={createOrder}
-            disabled={isLoading}
-            className="w-full px-6 py-4 bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold rounded-lg hover:from-cyan-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-lg"
-          >
-            {isLoading ? 'Processing...' : 'Pay Now with Razorpay'}
-          </button>
-
-          {/* Security Info */}
-          <p className="text-xs text-slate-400 text-center mt-6">
-            🔒 Secure payment powered by Razorpay. Your data is encrypted and safe.
-          </p>
         </motion.div>
 
-        {/* Help Text */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="text-center text-slate-400 text-sm"
+          className="text-center text-slate-500 text-sm mt-6"
         >
           Having issues? Contact us at{' '}
-          <a href="mailto:info@aiudaanbootcamp.com" className="text-cyan-400 hover:underline">
+          <a href="mailto:info@aiudaanbootcamp.com" className="text-brand-blue hover:underline">
             info@aiudaanbootcamp.com
           </a>
         </motion.p>

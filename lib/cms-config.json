@@ -1,0 +1,105 @@
+{
+  "slides": [
+    {
+      "title": "Empowering Innovation at BIT Gaya Campus",
+      "stats": [
+        {
+          "value": "10K+",
+          "label": "Students trained"
+        },
+        {
+          "value": "200+",
+          "label": "Tech projects built"
+        }
+      ],
+      "bg": "./images/college.jpeg",
+      "cta": "Explore Programs"
+    },
+    {
+      "title": "Center of Excellence in Technical Education since 2008",
+      "stats": [
+        {
+          "value": "18+",
+          "label": "Years of legacy"
+        },
+        {
+          "value": "100%",
+          "label": "Placement focused"
+        }
+      ],
+      "bg": "./images/college.jpeg",
+      "cta": "Campus Tour"
+    },
+    {
+      "title": "nnew",
+      "stats": [
+        {
+          "value": "0",
+          "label": "Metric"
+        }
+      ],
+      "bg": "./images/college.jpeg",
+      "cta": "Learn More"
+    }
+  ],
+  "programs": [
+    {
+      "title": "AI Web App Generation",
+      "tag": "Coding track",
+      "icon": "💻",
+      "description": "Build full-stack web applications using AI, Next.js, and Cursor, then deploy them live on Vercel.",
+      "highlights": [
+        "Cursor & AI coding",
+        "Next.js generation",
+        "One-click deployment"
+      ]
+    },
+    {
+      "title": "AI Filmmaking & CGI",
+      "tag": "Creative track",
+      "icon": "🎬",
+      "description": "Produce high-quality videos, talking avatars, CGI assets, and voiceovers using ElevenLabs and Suno.",
+      "highlights": [
+        "Avatar generation",
+        "AI Voice & CGI",
+        "Soundtracks & Suno"
+      ]
+    },
+    {
+      "title": "AI Automation & Prompts",
+      "tag": "Productivity track",
+      "icon": "⚡",
+      "description": "Master prompt engineering and build automated agent workflows to handle business tasks.",
+      "highlights": [
+        "Prompt Engineering",
+        "Custom Agent workflows",
+        "ChatGPT & Claude API"
+      ]
+    },
+    {
+      "title": "AI Digital Marketing",
+      "tag": "Business track",
+      "icon": "📈",
+      "description": "Scale content creation, manage Meta advertising lead generation, and design marketing materials using Canva.",
+      "highlights": [
+        "Meta Ads lead gen",
+        "Canva automation",
+        "GenSpark & Sintra AI"
+      ]
+    }
+  ],
+  "faqs": [
+    {
+      "q": "What is BIT Gaya AI Udaan?",
+      "a": "It is a premium upskilling and innovation platform backed by Buddha Institute of Technology (BIT) Gaya, designed to host hackathons, developer challenges, and tech cohorts."
+    },
+    {
+      "q": "How do I register for a challenge?",
+      "a": "Click on \"Register Now\" on any of our active flagship challenges, fill out the simple registration form, and form or join a team."
+    },
+    {
+      "q": "Are the bootcamps online or offline?",
+      "a": "We offer hybrid models. Some bootcamps are held in-person at Buddha Institute of Technology campus, while others are entirely virtual."
+    }
+  ]
+}

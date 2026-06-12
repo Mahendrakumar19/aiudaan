@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { sendToGoogleSheets } from '@/lib/googleSheets'
 import { prisma } from '@/lib/prisma'
+import { createMoodleUser } from '@/lib/moodle'
 import bcrypt from 'bcrypt'
 
 // CORS headers for production domain
@@ -193,6 +194,14 @@ export async function POST(request: NextRequest) {
 
     // Create or update user in database
     try {
+      const defaultPassword = `${email.trim().toLowerCase().split('@')[0]}Ai1!`
+      
+      // Sync user with Moodle LMS
+      const moodleResult = await createMoodleUser(email.trim(), defaultPassword, name.trim())
+      if (!moodleResult.success) {
+        logger.error(`Moodle registration failed during bootcamp signup: ${moodleResult.error}`)
+      }
+
       const hashedPassword = await bcrypt.hash(email.trim(), 10)
       
       await prisma.user.upsert({

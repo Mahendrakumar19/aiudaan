@@ -2,11 +2,18 @@ export interface User {
   id: string
   name: string
   email: string
-  image?: string
-  bio?: string
+  image?: string | null
+  bio?: string | null
   role: string
-  createdAt: Date
-  updatedAt: Date
+  mobile?: string | null
+  address?: string | null
+  state?: string | null
+  district?: string | null
+  class?: string | null
+  aiDomain?: string | null
+  bootcampType?: string | null
+  createdAt: Date | string
+  updatedAt: Date | string
 }
 
 export interface Course {

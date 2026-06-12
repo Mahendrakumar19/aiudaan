@@ -19,21 +19,17 @@ const inter = Inter({
 const baseUrl = 'https://aiudaanbootcamp.com'
 
 export const metadata: Metadata = {
-  title: 'AI Udaan Bootcamp 2026 - Master AI Tools & Content Creation',
-  description: 'Join the 2-Day AI Bootcamp at Buddha Institute. Master Web Applications, Digital Marketing & content creation using AI to start earning. Limited seats—register today!',
+  title: 'AI Udaan Bootcamp | Quantum Computing, ADCA, DCA & Internships',
+  description: 'A BIT-backed learning platform with a premium event-style design for future-ready programs and campus-led learning.',
   keywords: [
     'AI bootcamp',
-    'AI course',
-    'ChatGPT course',
-    'content creation course',
-    'online learning',
-    'AI training',
-    'Midjourney',
-    'digital marketing',
-    'learn AI',
-    'bootcamp 2026',
-    'Gaya bootcamp',
-    'Buddha Institute',
+    'Quantum Computing',
+    'ADCA',
+    'DCA',
+    'internships',
+    'BIT Gaya',
+    'Buddha Institute of Technology',
+    'future skills',
   ],
   authors: [{ name: 'Buddha Institute of Technology' }],
   creator: 'Buddha Institute of Technology',
@@ -56,8 +52,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: baseUrl,
     siteName: 'AI Udaan Bootcamp',
-    title: 'AI Udaan Bootcamp 2026 - Learn AI Tools & Content Creation',
-    description: 'Join our 2-Day AI Bootcamp. Master ChatGPT, Midjourney, content creation & start earning. Limited seats for students.',
+    title: 'AI Udaan Bootcamp | Learn. Build. Get Internship Ready.',
+    description: 'Premium education landing experience for students and parents exploring future-ready skills.',
     images: [
       {
         url: `${baseUrl}/images/og-image.png`,
@@ -107,7 +103,7 @@ export default function RootLayout({
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-        <meta name="theme-color" content="#0f172a" />
+        <meta name="theme-color" content="#ffffff" />
         <link rel='icon' href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y="50" dominant-baseline="middle" text-anchor="middle" font-size="90">🎓</text></svg>' />
         <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
@@ -128,12 +124,12 @@ export default function RootLayout({
           <MicrosoftClarity clarity_id={process.env.NEXT_PUBLIC_CLARITY_ID} />
         )}
       </head>
-      <body className='bg-slate-950 font-inter text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200'>
+      <body className='bg-white font-inter text-slate-900 antialiased selection:bg-blue-100 selection:text-slate-900'>
         <ClientProviders>
           <UTMTracker>
             <Navbar />
           </UTMTracker>
-          <main className='pt-24 bg-transparent relative z-10'>
+          <main className='pt-24 bg-white relative z-10'>
             {children}
           </main>
           <Footer />

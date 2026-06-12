@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { hashPassword, generateToken } from '@/lib/auth/jwt'
+import { createMoodleUser } from '@/lib/moodle'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user already exists
+    // Check if user already exists locally
     const existingUser = await prisma.user.findUnique({
       where: { email },
     })
@@ -28,7 +29,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Hash password and create user
+    // Create user in Moodle LMS first
+    const moodleResult = await createMoodleUser(email, password, name)
+    if (!moodleResult.success) {
+      logger.error(`Moodle registration failed: ${moodleResult.error}`)
+      return NextResponse.json(
+        { message: `Moodle LMS signup failed: ${moodleResult.error}` },
+        { status: 500 }
+      )
+    }
+
+    // Hash password and create user locally
     const hashedPassword = await hashPassword(password)
     const user = await prisma.user.create({
       data: {
@@ -59,3 +70,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

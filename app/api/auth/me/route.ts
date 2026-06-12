@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db'
 import { logger } from '@/lib/logger'
 import { verifyToken, extractTokenFromHeader } from '@/lib/auth/jwt'
+import { getMoodleUser } from '@/lib/moodle'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -38,10 +39,25 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Overlay details from Moodle
+    let name = user.name
+    try {
+      const moodleRes = await getMoodleUser(user.email)
+      if (moodleRes.success && moodleRes.user) {
+        name = moodleRes.user.fullname || `${moodleRes.user.firstname} ${moodleRes.user.lastname || ''}`.trim() || user.name
+      }
+    } catch (moodleError) {
+      logger.error('Failed to overlay Moodle details in /api/auth/me', moodleError)
+    }
+
     // Return user data without password
     const { password: _, ...userWithoutPassword } = user
+    const mergedUser = {
+      ...userWithoutPassword,
+      name,
+    }
 
-    return NextResponse.json(userWithoutPassword)
+    return NextResponse.json(mergedUser)
   } catch (error) {
     logger.error('Get user error', error)
     return NextResponse.json(
@@ -50,3 +66,4 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
