@@ -81,18 +81,32 @@ export async function createMoodleUser(
  * Authenticates a user against Moodle using login/token.php
  */
 export async function authenticateMoodleUser(
-  email: string,
+  emailOrUsername: string,
   password?: string
 ): Promise<{ success: boolean; token?: string; error?: string }> {
   try {
-    const cleanEmail = email.trim().toLowerCase()
-    const cleanPassword = password || `${cleanEmail.split('@')[0]}Ai1!`
+    const cleanInput = emailOrUsername.trim()
+    let moodleUsername = cleanInput.toLowerCase()
+
+    // If it's an email, fetch the user details to resolve the Moodle username
+    if (cleanInput.includes('@')) {
+      try {
+        const moodleUserRes = await getMoodleUser(cleanInput)
+        if (moodleUserRes.success && moodleUserRes.user) {
+          moodleUsername = moodleUserRes.user.username || moodleUsername
+        }
+      } catch (moodleErr) {
+        logger.error(`Failed to lookup username for ${cleanInput} before login`, moodleErr)
+      }
+    }
+
+    const cleanPassword = password || `${moodleUsername.split('@')[0]}Ai1!`
 
     const loginUrl = `${MOODLE_URL}/login/token.php?username=${encodeURIComponent(
-      cleanEmail
+      moodleUsername
     )}&password=${encodeURIComponent(cleanPassword)}&service=moodle_mobile_app`
 
-    logger.info(`Authenticating user against Moodle: ${cleanEmail}`)
+    logger.info(`Authenticating user against Moodle: ${cleanInput} (Moodle Username: ${moodleUsername})`)
 
     const response = await fetch(loginUrl, {
       method: 'GET',
@@ -109,12 +123,12 @@ export async function authenticateMoodleUser(
     const data = await response.json()
 
     if (data.token) {
-      logger.info(`Moodle login successful for ${cleanEmail}`)
+      logger.info(`Moodle login successful for ${cleanInput}`)
       return { success: true, token: data.token }
     }
 
     if (data.error) {
-      logger.warn(`Moodle login failed for ${cleanEmail}: ${data.error}`)
+      logger.warn(`Moodle login failed for ${cleanInput}: ${data.error}`)
       return { success: false, error: data.error }
     }
 

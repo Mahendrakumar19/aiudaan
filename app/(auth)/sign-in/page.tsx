@@ -46,9 +46,9 @@ export default function SignIn() {
         {/* Form */}
         <form onSubmit={handleSubmit} className='space-y-4'>
           <Input
-            label='Email'
-            type='email'
-            placeholder='you@example.com'
+            label='Email or Username'
+            type='text'
+            placeholder='Enter your Email or Username'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             error={error ? 'Invalid credentials' : undefined}
