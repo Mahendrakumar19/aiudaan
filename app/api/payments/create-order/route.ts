@@ -33,12 +33,20 @@ export async function OPTIONS(_request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { plan, email, name, mobile, bootcampType } = body
+    
+    // Support both nested userData and flat parameters
+    const userData = body.userData || {}
+    const plan = body.plan || userData.plan
+    const email = body.email || userData.email
+    const name = body.name || userData.name
+    const mobile = body.mobile || userData.mobile || userData.phone
+    const bootcampType = body.bootcampType || userData.bootcampType || 'online'
+    const isMoodleCourse = plan === 'moodle_course'
 
     // Validation
-    if (!plan || !email || !name || !mobile || !bootcampType) {
+    if (!plan || !email || !name || !mobile || (!isMoodleCourse && !bootcampType)) {
       const response = NextResponse.json(
-        { success: false, message: 'Missing required fields: plan, email, name, mobile, bootcampType' },
+        { success: false, message: 'Missing required fields' },
         { status: 400 }
       )
       const corsHeaders = getCORSHeaders()
@@ -48,40 +56,49 @@ export async function POST(request: NextRequest) {
       return response
     }
 
-    // Validate bootcampType
-    if (!['offline', 'online'].includes(bootcampType)) {
-      const response = NextResponse.json(
-        { success: false, message: 'Invalid bootcamp type. Must be "offline" or "online"' },
-        { status: 400 }
-      )
-      const corsHeaders = getCORSHeaders()
-      corsHeaders.forEach((value, key) => {
-        response.headers.set(key, value)
-      })
-      return response
+    let planDetails = {
+      price: 499,
+      currency: 'INR',
+      name: 'Moodle LMS Course'
     }
 
-    // Get plan details based on bootcampType and plan
-    let planKey: 'basic' | 'standard' | 'online' = 'basic'
-    
-    if (bootcampType === 'online') {
-      planKey = 'online'
-    } else if (bootcampType === 'offline') {
-      planKey = plan === 'standard' ? 'standard' : 'basic'
-    }
+    if (!isMoodleCourse) {
+      // Validate bootcampType
+      if (!['offline', 'online'].includes(bootcampType)) {
+        const response = NextResponse.json(
+          { success: false, message: 'Invalid bootcamp type. Must be "offline" or "online"' },
+          { status: 400 }
+        )
+        const corsHeaders = getCORSHeaders()
+        corsHeaders.forEach((value, key) => {
+          response.headers.set(key, value)
+        })
+        return response
+      }
 
-    const planDetails = PAYMENT_PLANS[planKey]
+      // Get plan details based on bootcampType and plan
+      let planKey: 'basic' | 'standard' | 'online' = 'basic'
+      
+      if (bootcampType === 'online') {
+        planKey = 'online'
+      } else if (bootcampType === 'offline') {
+        planKey = plan === 'standard' ? 'standard' : 'basic'
+      }
 
-    if (!planDetails) {
-      const response = NextResponse.json(
-        { success: false, message: 'Invalid plan selected' },
-        { status: 400 }
-      )
-      const corsHeaders = getCORSHeaders()
-      corsHeaders.forEach((value, key) => {
-        response.headers.set(key, value)
-      })
-      return response
+      const foundPlan = PAYMENT_PLANS[planKey]
+
+      if (!foundPlan) {
+        const response = NextResponse.json(
+          { success: false, message: 'Invalid plan selected' },
+          { status: 400 }
+        )
+        const corsHeaders = getCORSHeaders()
+        corsHeaders.forEach((value, key) => {
+          response.headers.set(key, value)
+        })
+        return response
+      }
+      planDetails = foundPlan
     }
 
     // Validate environment variables

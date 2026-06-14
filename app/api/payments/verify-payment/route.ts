@@ -17,6 +17,7 @@ import {
 } from '@/lib/razorpay-utils'
 import { sendConfirmationEmail } from '@/lib/email-service'
 import { savePaymentRecord } from '@/lib/payment-db'
+import { enrollMoodleUserInCourse } from '@/lib/moodle'
 
 // CORS headers for production domain
 const getCORSHeaders = () => {
@@ -43,12 +44,17 @@ export async function POST(request: NextRequest) {
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-      email,
-      name,
-      mobile,
-      plan,
-      bootcampType,
     } = body
+
+    // Support both nested userData and flat parameters
+    const userData = body.userData || {}
+    const email = body.email || userData.email
+    const name = body.name || userData.name
+    const mobile = body.mobile || userData.mobile || userData.phone
+    const plan = body.plan || userData.plan
+    const bootcampType = body.bootcampType || userData.bootcampType || 'online'
+    const courseId = body.courseId || userData.courseId
+    const isMoodleCourse = plan === 'moodle_course'
 
     // Validate inputs
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -63,22 +69,9 @@ export async function POST(request: NextRequest) {
       return response
     }
 
-    if (!name || !email || !mobile || !bootcampType) {
+    if (!name || !email || !mobile || (!isMoodleCourse && !bootcampType)) {
       const response = NextResponse.json(
         { success: false, message: 'Invalid user data' },
-        { status: 400 }
-      )
-      const corsHeaders = getCORSHeaders()
-      corsHeaders.forEach((value, key) => {
-        response.headers.set(key, value)
-      })
-      return response
-    }
-
-    // Validate bootcampType
-    if (!['offline', 'online'].includes(bootcampType)) {
-      const response = NextResponse.json(
-        { success: false, message: 'Invalid bootcamp type' },
         { status: 400 }
       )
       const corsHeaders = getCORSHeaders()
@@ -105,7 +98,6 @@ export async function POST(request: NextRequest) {
     }
 
     // CRITICAL: Verify signature on backend
-    // Never trust frontend signature verification
     const isSignatureValid = verifyRazorpaySignature(
       razorpay_order_id,
       razorpay_payment_id,
@@ -128,22 +120,33 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Razorpay signature verified successfully')
 
-    // Get plan details for amount based on bootcampType and plan
-    let planKey: 'basic' | 'standard' | 'online' = 'basic'
-    
-    if (bootcampType === 'online') {
-      planKey = 'online'
-    } else if (bootcampType === 'offline') {
-      planKey = plan === 'standard' ? 'standard' : 'basic'
+    let planDetails = {
+      price: 499,
+      currency: 'INR',
+      name: 'Moodle LMS Course'
     }
+    let planKey = 'moodle_course'
 
-    const planDetails = PAYMENT_PLANS[planKey]
+    if (!isMoodleCourse) {
+      // Get plan details for amount based on bootcampType and plan
+      let resolvedPlanKey: 'basic' | 'standard' | 'online' = 'basic'
+      
+      if (bootcampType === 'online') {
+        resolvedPlanKey = 'online'
+      } else if (bootcampType === 'offline') {
+        resolvedPlanKey = plan === 'standard' ? 'standard' : 'basic'
+      }
 
-    if (!planDetails) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid plan' },
-        { status: 400 }
-      )
+      const foundPlan = PAYMENT_PLANS[resolvedPlanKey]
+
+      if (!foundPlan) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid plan' },
+          { status: 400 }
+        )
+      }
+      planDetails = foundPlan
+      planKey = resolvedPlanKey
     }
 
     // Store registration in database
@@ -167,13 +170,28 @@ export async function POST(request: NextRequest) {
       name,
       mobile,
       amount: planDetails.price,
-      plan: planKey as 'basic' | 'standard' | 'online',
+      plan: planKey as any,
       bootcampType: bootcampType,
       status: 'success',
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
       razorpaySignature: razorpay_signature,
     })
+
+    // Trigger Moodle Course Auto-Enrollment if applicable
+    if (isMoodleCourse && courseId) {
+      try {
+        console.log(`Triggering Moodle enrollment for ${email} in course ${courseId}`)
+        const enrolRes = await enrollMoodleUserInCourse(email, parseInt(courseId))
+        if (!enrolRes.success) {
+          console.error(`❌ Moodle Course Auto-Enrollment failed: ${enrolRes.error}`)
+        } else {
+          console.log(`✅ Moodle Course Auto-Enrollment succeeded for ${email} in course ${courseId}`)
+        }
+      } catch (enrolErr) {
+        console.error('Failed to trigger Moodle enrollment:', enrolErr)
+      }
+    }
 
     // Send confirmation email
     const emailPayload = {
@@ -199,8 +217,6 @@ export async function POST(request: NextRequest) {
       emailSent,
     })
 
-    // Important: Don't cache payment verification (user-specific data)
-    // Important: Don't cache payment verification (user-specific data)
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
     response.headers.set('Pragma', 'no-cache')
     

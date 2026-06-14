@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { RegistrationForm } from '@/components/forms/RegistrationForm'
+import { SingularityHero } from '@/components/landing/SingularityHero'
 
 type Program = {
   title: string
@@ -28,33 +29,9 @@ export default function HomeClientRedesign() {
   const [activeFaq, setActiveFaq] = useState<number | null>(0)
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null)
 
-  // Hero Slider State
-  const [currentSlide, setCurrentSlide] = useState(0)
-
   // Live Events State
   const [liveEvents] = useState<LiveEvent[]>([])
   const [loadingEvents] = useState(false)
-
-  const [slides, setSlides] = useState<any[]>([
-    {
-      title: "Empowering Innovation at BIT Gaya Campus",
-      stats: [
-        { value: '10K+', label: 'Students trained' },
-        { value: '200+', label: 'Tech projects built' }
-      ],
-      bg: './images/college.jpeg',
-      cta: 'Explore Programs'
-    },
-    {
-      title: "Center of Excellence in Technical Education since 2008",
-      stats: [
-        { value: '18+', label: 'Years of legacy' },
-        { value: '100%', label: 'Placement focused' }
-      ],
-      bg: './images/college.jpeg',
-      cta: 'Campus Tour'
-    }
-  ])
 
   const [programs, setPrograms] = useState<Program[]>([
     {
@@ -120,86 +97,23 @@ export default function HomeClientRedesign() {
       .then(res => res.json())
       .then(data => {
         if (data && data.success && data.config) {
-          if (data.config.slides) setSlides(data.config.slides)
           if (data.config.programs) setPrograms(data.config.programs)
           if (data.config.faqs) setFaqs(data.config.faqs)
         }
       })
       .catch(err => console.error('Failed to load CMS config, using defaults', err))
-
-    // Slide interval timer
-    const timer = setInterval(() => {
-      setCurrentSlide(prev => (prev + 1) % slides.length)
-    }, 6000)
-    return () => clearInterval(timer)
   }, [])
 
   return (
     <main className="relative min-h-screen bg-white text-slate-900 overflow-hidden">
 
-      {/* Dynamic Slide Banner Section */}
-      <section className="px-4 pt-8 md:pt-16 max-w-7xl mx-auto">
-        <div className="relative rounded-2xl overflow-hidden h-[480px] sm:h-[550px] lg:h-[620px] bg-[#0c1222] shadow-2xl flex items-center">
-          <div className="absolute inset-0 z-0">
-            <img
-              src={slides[currentSlide].bg}
-              alt="Slide Banner Background"
-              className="absolute inset-0 w-full h-full object-cover opacity-75"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
-          </div>
+      {/* Dynamic WebGL Parallax Singularity Hero Section */}
+      <SingularityHero />
 
-          <div className="relative z-10 px-6 sm:px-12 lg:px-20 text-white max-w-3xl">
-            <motion.h1
-              key={currentSlide}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="font-syne text-3xl sm:text-5xl lg:text-6xl font-bold leading-tight"
-            >
-              {slides[currentSlide].title}
-            </motion.h1>
-
-            <motion.div
-              key={`stats-${currentSlide}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="flex gap-8 sm:gap-12 mt-8 sm:mt-12 text-[#32B7EC]"
-            >
-              {slides[currentSlide].stats.map((stat: any, i: number) => (
-                <div key={i}>
-                  <div className="text-3xl sm:text-4xl font-extrabold">{stat.value}</div>
-                  <div className="text-slate-300 text-xs sm:text-sm mt-1">{stat.label}</div>
-                </div>
-              ))}
-            </motion.div>
-
-            <div className="mt-8 sm:mt-12 flex gap-4">
-              <button
-                onClick={() => setIsRegisterModalOpen(true)}
-                className="bg-[#3462AE] hover:bg-[#1548B7] text-white px-8 py-3 rounded-full font-bold transition flex items-center gap-2 text-sm shadow-lg"
-              >
-                {slides[currentSlide].cta}
-                <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center text-[#3462AE] text-xs font-bold">↗</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Dots Indicator */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-            {slides.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentSlide(index)}
-                className={`w-2.5 h-2.5 rounded-full transition-all ${currentSlide === index ? 'bg-[#32B7EC] w-6' : 'bg-white/40'}`}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Infinite Logo Marquee Section */}
-      <section className="w-full py-12 bg-slate-50 border-y border-slate-100 overflow-hidden mt-12">
+      {/* Wrapping subsequent sections to prevent layout collisions during scroll */}
+      <div className="relative z-20 bg-white">
+        {/* Infinite Logo Marquee Section */}
+        <section className="w-full py-12 bg-slate-50 border-y border-slate-100 overflow-hidden">
         <h3 className="text-center font-medium text-slate-500 uppercase tracking-widest text-xs mb-8">
           Identified 5000+ solutions for over 200+ organizations worldwide
         </h3>
@@ -466,6 +380,8 @@ export default function HomeClientRedesign() {
           </div>
         )}
       </AnimatePresence>
+
+      </div>
 
       <style jsx global>{`
         @keyframes marquee {

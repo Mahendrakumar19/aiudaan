@@ -11,6 +11,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { RegistrationData, PaymentVerificationRequest } from '@/types/payment'
+import { useAuth } from '@/hooks'
+
 
 declare global {
   interface Window {
@@ -20,15 +22,51 @@ declare global {
 
 export default function CheckoutPage() {
   const router = useRouter()
+  const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [userData, setUserData] = useState<RegistrationData | null>(null)
+  const [checkoutCourse, setCheckoutCourse] = useState<any | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Retrieve registration data from localStorage
+    // 1. Check if Moodle Course checkout is active
+    const savedCourse = localStorage.getItem('checkoutCourse')
+    if (savedCourse) {
+      try {
+        const course = JSON.parse(savedCourse)
+        setCheckoutCourse(course)
+
+        // Auth Gateway: Intercept checkout for guest users
+        if (!authLoading) {
+          if (!isAuthenticated) {
+            router.push('/sign-in?redirect=/checkout')
+            return
+          }
+
+          if (user) {
+            setUserData({
+              name: user.name,
+              email: user.email,
+              phone: user.mobile || '',
+              plan: 'moodle_course', // Flag indicating Moodle Course checkout
+              bootcampType: 'online',
+              state: user.state || '',
+              district: user.district || '',
+              class: user.class || '',
+              aiDomain: user.aiDomain || ''
+            })
+          }
+        }
+        return
+      } catch (err) {
+        console.error('Error parsing Moodle checkout course:', err)
+      }
+    }
+
+    // 2. Fallback to Bootcamp registration
     const savedData = localStorage.getItem('registrationData')
     if (!savedData) {
-      router.push('/register')
+      router.push('/courses')
       return
     }
 
@@ -39,7 +77,7 @@ export default function CheckoutPage() {
       console.error('Error parsing registration data:', error)
       router.push('/register')
     }
-  }, [router])
+  }, [router, isAuthenticated, user, authLoading])
 
   // Load Razorpay script
   useEffect(() => {
@@ -71,7 +109,8 @@ export default function CheckoutPage() {
         },
         body: JSON.stringify({
           userData,
-          plan: userData.plan,
+          plan: checkoutCourse ? 'moodle_course' : userData.plan,
+          courseId: checkoutCourse?.id
         }),
       })
 
@@ -102,7 +141,7 @@ export default function CheckoutPage() {
       amount: data.amount * 100, // Convert to paise
       currency: data.currency,
       name: 'AI Udaan Bootcamp',
-      description: `Registration - ${data.planDetails.name}`,
+      description: checkoutCourse ? `Course - ${checkoutCourse.title}` : `Registration - ${data.planDetails.name}`,
       prefill: {
         name: userData?.name,
         email: userData?.email,
@@ -132,7 +171,11 @@ export default function CheckoutPage() {
         razorpay_order_id: response.razorpay_order_id,
         razorpay_payment_id: response.razorpay_payment_id,
         razorpay_signature: response.razorpay_signature,
-        userData: userData!,
+        userData: {
+          ...userData!,
+          plan: checkoutCourse ? 'moodle_course' : userData!.plan,
+          courseId: checkoutCourse?.id
+        },
       }
 
       const verifyResponse = await fetch('/api/payments/verify-payment', {
@@ -151,23 +194,27 @@ export default function CheckoutPage() {
 
       console.log('Payment verified successfully')
 
-      // Clear localStorage
+      // Clear local storage items
       localStorage.removeItem('registrationData')
+      localStorage.removeItem('checkoutCourse')
 
-      // Redirect to success page with query params
-      const params = new URLSearchParams({
-        name: userData?.name || '',
-        email: userData?.email || '',
-        mobile: userData?.phone || '',
-        orderId: response.razorpay_order_id,
-        registrationId: verifyData.registrationId,
-      })
-
-      router.push(`/success?${params.toString()}`)
+      // Redirect accordingly
+      if (checkoutCourse) {
+        // Redirection to courses tab in dashboard
+        router.push('/dashboard?activeTab=camps')
+      } else {
+        const params = new URLSearchParams({
+          name: userData?.name || '',
+          email: userData?.email || '',
+          mobile: userData?.phone || '',
+          orderId: response.razorpay_order_id,
+          registrationId: verifyData.registrationId,
+        })
+        router.push(`/success?${params.toString()}`)
+      }
     } catch (err: any) {
       console.error('Payment verification error:', err)
       setError(err.message || 'Payment verification failed')
-      // Still redirect to failure but user can retry
       router.push('/failure')
     } finally {
       setIsLoading(false)
@@ -246,17 +293,17 @@ export default function CheckoutPage() {
                   <span className="text-slate-950 font-semibold">+91 {userData.phone}</span>
                 </div>
 
-                <div className="flex justify-between items-center gap-4 pb-4 border-b border-slate-200">
+                 <div className="flex justify-between items-center gap-4 pb-4 border-b border-slate-200">
                   <span className="text-slate-500">Plan</span>
                   <span className="text-slate-950 font-semibold text-right">
-                    {userData.plan === 'standard' ? 'With Accommodation' : 'Without Accommodation'}
+                    {checkoutCourse ? `Course: ${checkoutCourse.title}` : (userData.plan === 'standard' ? 'With Accommodation' : 'Without Accommodation')}
                   </span>
                 </div>
 
                 <div className="flex justify-between items-center pt-4">
                   <span className="text-lg font-bold text-slate-950">Amount to pay</span>
                   <span className="text-3xl font-black text-brand-blue">
-                    ₹{userData.plan === 'standard' ? '2,499' : '999'}
+                    ₹{checkoutCourse ? '499' : (userData.plan === 'standard' ? '2,499' : '999')}
                   </span>
                 </div>
               </div>

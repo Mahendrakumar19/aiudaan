@@ -190,3 +190,173 @@ export async function getMoodleUser(
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 }
+
+const MOODLE_COURSE_TOKEN = process.env.MOODLE_COURSE_TOKEN || MOODLE_WSTOKEN
+
+/**
+ * Fetches all courses available on the Moodle site.
+ */
+export async function getMoodleCourses(): Promise<{ success: boolean; courses?: any[]; error?: string }> {
+  try {
+    const params = new URLSearchParams()
+    params.append('wstoken', MOODLE_COURSE_TOKEN)
+    params.append('wsfunction', 'core_course_get_courses')
+    params.append('moodlewsrestformat', 'json')
+
+    const endpoint = `${MOODLE_URL}/webservice/rest/server.php`
+    logger.info(`Fetching Moodle course directory from ${endpoint}`)
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json'
+      },
+      body: params.toString()
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (Array.isArray(data)) {
+      // Filter out site home course (usually ID 1 has shortname site/home)
+      const courses = data.filter(c => c.id !== 1)
+      return { success: true, courses }
+    }
+
+    if (data.exception) {
+      return { success: false, error: data.message || data.exception }
+    }
+
+    return { success: false, error: 'Unknown response format' }
+  } catch (error) {
+    logger.error('Error in getMoodleCourses:', error)
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+/**
+ * Fetches all courses a specific user is enrolled in.
+ */
+export async function getUserEnrolledCourses(
+  email: string
+): Promise<{ success: boolean; courses?: any[]; error?: string }> {
+  try {
+    // 1. Resolve Moodle User ID
+    const moodleUserRes = await getMoodleUser(email)
+    if (!moodleUserRes.success || !moodleUserRes.user) {
+      return { success: false, error: moodleUserRes.error || 'Failed to resolve user' }
+    }
+
+    const moodleUserId = moodleUserRes.user.id
+
+    // 2. Fetch enrolled courses
+    const params = new URLSearchParams()
+    params.append('wstoken', MOODLE_COURSE_TOKEN)
+    params.append('wsfunction', 'core_enrol_get_users_courses')
+    params.append('moodlewsrestformat', 'json')
+    params.append('userid', String(moodleUserId))
+
+    const endpoint = `${MOODLE_URL}/webservice/rest/server.php`
+    logger.info(`Fetching Moodle enrolled courses for user ${moodleUserId} from ${endpoint}`)
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json'
+      },
+      body: params.toString()
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+
+    if (Array.isArray(data)) {
+      return { success: true, courses: data }
+    }
+
+    if (data.exception) {
+      return { success: false, error: data.message || data.exception }
+    }
+
+    return { success: false, error: 'Unknown response format' }
+  } catch (error) {
+    logger.error('Error in getUserEnrolledCourses:', error)
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+const MOODLE_ENROL_TOKEN = process.env.MOODLE_ENROL_TOKEN || MOODLE_WSTOKEN
+
+/**
+ * Enrolls a Moodle user in a course manually.
+ */
+export async function enrollMoodleUserInCourse(
+  email: string,
+  courseId: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // 1. Resolve Moodle User ID
+    const moodleUserRes = await getMoodleUser(email)
+    if (!moodleUserRes.success || !moodleUserRes.user) {
+      return { success: false, error: moodleUserRes.error || 'Failed to resolve user' }
+    }
+
+    const moodleUserId = moodleUserRes.user.id
+
+    // 2. Call enrol_manual_enrol_users
+    const params = new URLSearchParams()
+    params.append('wstoken', MOODLE_ENROL_TOKEN)
+    params.append('wsfunction', 'enrol_manual_enrol_users')
+    params.append('moodlewsrestformat', 'json')
+    params.append('enrolments[0][roleid]', '5') // Student role
+    params.append('enrolments[0][userid]', String(moodleUserId))
+    params.append('enrolments[0][courseid]', String(courseId))
+
+    const endpoint = `${MOODLE_URL}/webservice/rest/server.php`
+    logger.info(`Enrolling Moodle user ${moodleUserId} in course ${courseId} at ${endpoint}`)
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/json'
+      },
+      body: params.toString()
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    // Moodle's enrol_manual_enrol_users returns null/empty on success, or throws exception JSON
+    const text = await response.text()
+    if (!text || text.trim() === 'null') {
+      logger.info(`Successfully enrolled user ${moodleUserId} in course ${courseId}`)
+      return { success: true }
+    }
+
+    const data = JSON.parse(text)
+    if (data.exception) {
+      logger.error('Moodle Enrollment Exception:', data)
+      return { success: false, error: data.message || data.exception }
+    }
+
+    return { success: true }
+  } catch (error) {
+    logger.error('Error in enrollMoodleUserInCourse:', error)
+    return { success: false, error: error instanceof Error ? error.message : String(error) }
+  }
+}
+
+

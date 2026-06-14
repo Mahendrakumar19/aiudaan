@@ -1,12 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks'
 import Link from 'next/link'
+import Cookies from 'js-cookie'
 
 export default function Dashboard() {
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, logout } = useAuth()
   const [activeTab, setActiveTab] = useState<'events' | 'teams' | 'camps'>('events')
+
+  const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
+  const [allCourses, setAllCourses] = useState<any[]>([])
+  const [loadingCourses, setLoadingCourses] = useState(false)
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const fetchMoodleData = async () => {
+      setLoadingCourses(true)
+      const token = Cookies.get('token')
+      try {
+        // 1. Fetch Enrolled Courses
+        const enrolledRes = await fetch('/api/courses/moodle?enrolled=true', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        if (enrolledRes.ok) {
+          const data = await enrolledRes.json()
+          if (data.success && data.courses) {
+            setEnrolledCourses(data.courses)
+          }
+        }
+
+        // 2. Fetch All Courses
+        const allRes = await fetch('/api/courses/moodle')
+        if (allRes.ok) {
+          const data = await allRes.json()
+          if (data.success && data.courses) {
+            setAllCourses(data.courses)
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load Moodle courses', err)
+      } finally {
+        setLoadingCourses(false)
+      }
+    }
+
+    fetchMoodleData()
+  }, [isAuthenticated])
 
   if (!isAuthenticated) {
     return (
@@ -55,18 +96,7 @@ export default function Dashboard() {
     }
   ]
 
-  const myCamps = [
-    {
-      title: 'Quantum Computing Bootcamp',
-      progress: 80,
-      instructor: 'Dr. Amit K. (BIT Gaya)'
-    },
-    {
-      title: 'Advanced ADCA & DCA Masterclass',
-      progress: 45,
-      instructor: 'Prof. S. Prasad'
-    }
-  ]
+
 
   return (
     <div className='min-h-screen bg-slate-50 py-10 px-4 md:px-8 lg:px-12'>
@@ -96,7 +126,7 @@ export default function Dashboard() {
 
         {/* Dashboard Tabs & Metrics Grid */}
         <div className='grid grid-cols-1 lg:grid-cols-4 gap-8'>
-          
+
           {/* Quick Info Sidebar */}
           <div className='space-y-6 lg:col-span-1'>
             <div className='bg-white border border-slate-200 rounded-3xl p-6 shadow-sm'>
@@ -148,27 +178,36 @@ export default function Dashboard() {
               </div>
 
               <div className='space-y-4 pt-4 border-t border-slate-100 text-xs font-semibold text-slate-600'>
-                <button 
+                <button
                   onClick={() => setActiveTab('events')}
                   className={`w-full py-3 px-4 rounded-xl text-left flex justify-between items-center transition ${activeTab === 'events' ? 'bg-[#3462AE]/10 text-[#3462AE]' : 'hover:bg-slate-50'}`}
                 >
                   <span>Registered Events</span>
                   <span className='bg-white border border-slate-200 px-2 py-0.5 rounded-full text-[10px]'>{registeredEvents.length}</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab('teams')}
                   className={`w-full py-3 px-4 rounded-xl text-left flex justify-between items-center transition ${activeTab === 'teams' ? 'bg-[#3462AE]/10 text-[#3462AE]' : 'hover:bg-slate-50'}`}
                 >
                   <span>My Teams</span>
                   <span className='bg-white border border-slate-200 px-2 py-0.5 rounded-full text-[10px]'>{myTeams.length}</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setActiveTab('camps')}
                   className={`w-full py-3 px-4 rounded-xl text-left flex justify-between items-center transition ${activeTab === 'camps' ? 'bg-[#3462AE]/10 text-[#3462AE]' : 'hover:bg-slate-50'}`}
                 >
                   <span>Upskilling Camps</span>
-                  <span className='bg-white border border-slate-200 px-2 py-0.5 rounded-full text-[10px]'>{myCamps.length}</span>
+                  <span className='bg-white border border-slate-200 px-2 py-0.5 rounded-full text-[10px]'>{enrolledCourses.length}</span>
                 </button>
+
+                <div className="pt-2 border-t border-slate-100 mt-2">
+                  <button
+                    onClick={logout}
+                    className="w-full py-2.5 px-4 rounded-xl text-center bg-red-50 hover:bg-red-100 text-red-600 font-bold transition text-xs shadow-sm flex items-center justify-center gap-2"
+                  >
+                    <span>🚪</span> Logout Account
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -177,19 +216,19 @@ export default function Dashboard() {
               <h4 className='font-bold text-slate-900 text-sm'>Access via Mobile App</h4>
               <p className='text-slate-500 text-xs mt-1 mb-4'>Download the official AI Udaan app to access courses, quizzes, and videos offline.</p>
               <div className="flex flex-col gap-2">
-                <a href="#" className="py-2 bg-slate-900 text-white rounded-lg text-[10px] font-bold">Download App (Android)</a>
-                <span className="text-[9px] uppercase tracking-wider text-emerald-600 font-bold">Moodle Backend Sync: Active</span>
+                <a href="https://play.google.com/store/apps/details?id=com.nighwantech.aiudaanbootcamp" className="py-2 bg-slate-900 text-white rounded-lg text-[10px] font-bold">Download App (Android)</a>
+                <span className="text-[9px] uppercase tracking-wider text-emerald-600 font-bold">LMS Backend Sync: Active</span>
               </div>
             </div>
           </div>
 
           {/* Tab Content Display Area */}
           <div className='lg:col-span-3 space-y-6'>
-            
+
             {activeTab === 'events' && (
               <div className='bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm'>
                 <h3 className='font-bold text-slate-900 text-lg mb-6'>My Registered Hackathons</h3>
-                
+
                 {registeredEvents.length === 0 ? (
                   <div className='text-center py-12'>
                     <span className='text-4xl block mb-4'>🚀</span>
@@ -231,7 +270,7 @@ export default function Dashboard() {
             {activeTab === 'teams' && (
               <div className='bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm'>
                 <h3 className='font-bold text-slate-900 text-lg mb-6'>Collaborative Teams</h3>
-                
+
                 {myTeams.map((team, index) => (
                   <div key={index} className='border border-slate-200 rounded-2xl p-5 space-y-4'>
                     <div className='flex justify-between items-center border-b border-slate-100 pb-3'>
@@ -259,24 +298,79 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'camps' && (
-              <div className='bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm'>
-                <h3 className='font-bold text-slate-900 text-lg mb-6'>Upskilling Camp Progress</h3>
-                
-                <div className='space-y-6'>
-                  {myCamps.map((camp, index) => (
-                    <div key={index} className='space-y-2'>
-                      <div className='flex justify-between items-start'>
-                        <div>
-                          <h4 className='font-bold text-slate-900 text-sm sm:text-base'>{camp.title}</h4>
-                          <p className='text-slate-500 text-xs'>{camp.instructor}</p>
-                        </div>
-                        <span className='font-bold text-[#32B7EC] text-sm'>{camp.progress}%</span>
-                      </div>
-                      <div className='w-full h-2.5 bg-slate-100 rounded-full overflow-hidden'>
-                        <div className='h-full bg-gradient-to-r from-[#3462AE] to-[#32B7EC]' style={{ width: `${camp.progress}%` }} />
-                      </div>
+              <div className='space-y-6'>
+                {/* Enrolled Courses */}
+                <div className='bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm'>
+                  <h3 className='font-bold text-slate-900 text-lg mb-6'>My Enrolled Courses</h3>
+
+                  {loadingCourses ? (
+                    <div className="py-8 text-center text-sm text-slate-400">Loading your courses...</div>
+                  ) : enrolledCourses.length === 0 ? (
+                    <div className='text-center py-12'>
+                      <span className='text-4xl block mb-4'>📚</span>
+                      <h4 className='font-bold text-slate-900'>No courses enrolled yet</h4>
+                      <p className='text-slate-500 text-xs mt-1'>Enroll in any of the courses below to start learning.</p>
                     </div>
-                  ))}
+                  ) : (
+                    <div className='space-y-4'>
+                      {enrolledCourses.map((camp, index) => (
+                        <div key={index} className='p-5 border border-slate-200 rounded-2xl bg-slate-50/50 hover:border-[#3462AE]/30 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
+                          <div>
+                            <h4 className='font-bold text-slate-900 text-sm sm:text-base'>{camp.fullname}</h4>
+                            <p className='text-slate-500 text-xs mt-1'>Course Code: <strong className="text-slate-700">{camp.shortname}</strong></p>
+                          </div>
+                          <a
+                            href={`https://moodle.aiudaanbootcamp.com/course/view.php?id=${camp.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className='px-4 py-2 bg-[#3462AE] hover:bg-[#1548B7] text-white rounded-xl text-xs font-bold transition shadow-sm'
+                          >
+                            Go to Class ↗
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Available Courses for Payment/Registration */}
+                <div className='bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-sm'>
+                  <h3 className='font-bold text-slate-900 text-lg mb-6'>Available LMS Courses</h3>
+
+                  {loadingCourses ? (
+                    <div className="py-8 text-center text-sm text-slate-400">Loading catalog...</div>
+                  ) : allCourses.length === 0 ? (
+                    <div className='text-center py-12 text-slate-400 text-sm'>No courses available in catalog.</div>
+                  ) : (
+                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                      {allCourses.map((camp, index) => {
+                        const isEnrolled = enrolledCourses.some(ec => ec.id === camp.id)
+                        return (
+                          <div key={index} className='border border-slate-200 rounded-2xl p-5 flex flex-col justify-between hover:shadow-md transition bg-white'>
+                            <div>
+                              <span className="text-[9px] uppercase tracking-wider font-extrabold text-[#32B7EC]">LMS CAMPUS</span>
+                              <h4 className='font-bold text-slate-900 text-sm sm:text-base mt-1'>{camp.fullname}</h4>
+                              <p className='text-slate-500 text-xs mt-1 line-clamp-2' dangerouslySetInnerHTML={{ __html: camp.summary || 'No description available.' }} />
+                            </div>
+                            <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                              <span className="text-xs font-bold text-slate-900">₹499 (Online Course)</span>
+                              {isEnrolled ? (
+                                <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-3 py-1.5 rounded-full font-bold">
+                                  ✓ Enrolled
+                                </span>
+                              ) : (
+                                <Link href="/courses">
+                                  <button className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition">
+                                    Register & Enrol
+                                  </button>
+                                </Link>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

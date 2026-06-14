@@ -7,7 +7,13 @@ export interface RegistrationData {
   name: string
   email: string
   phone: string
-  plan: 'basic' | 'standard' // basic = 999, standard = 2499
+  plan: string
+  bootcampType?: string
+  state?: string
+  district?: string
+  class?: string
+  aiDomain?: string
+  courseId?: number
 }
 
 export interface PlanType {
@@ -66,7 +72,7 @@ export interface StoredRegistration {
   name: string
   email: string
   phone: string
-  plan: 'basic' | 'standard'
+  plan: string
   amount: number
   razorpayOrderId: string
   razorpayPaymentId?: string

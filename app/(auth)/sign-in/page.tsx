@@ -1,17 +1,43 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/hooks'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [stealthLogin, setStealthLogin] = useState(false)
   const [error, setError] = useState('')
+  const [timestamp, setTimestamp] = useState('')
+  const coordinates = '25°04′N 85°00′E' // AI Udaan region
   const { login, loading } = useAuth()
+
+  // Dynamic timestamp updates (UTC)
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date()
+      const utcStr = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC'
+      setTimestamp(utcStr)
+    }
+    updateTime()
+    const timer = setInterval(updateTime, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Mouse tracking for the spotlight effect
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth) * 100
+      const y = (e.clientY / window.innerHeight) * 100
+      document.documentElement.style.setProperty('--mouse-x', `${x}%`)
+      document.documentElement.style.setProperty('--mouse-y', `${y}%`)
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -25,87 +51,158 @@ export default function SignIn() {
     try {
       await login(email, password)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed')
+      setError(err instanceof Error ? err.message : 'Authentication failed')
     }
   }
 
+  // Active status indicators based on input fields filled status
+  const isEmailActive = email.length > 0
+  const isPasswordActive = password.length > 0
+
   return (
-    <div className='min-h-screen flex items-center justify-center px-4 py-20'>
+    <div className='min-h-[90vh] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden cyber-auth-body font-mono select-none'>
+      {/* Decorative Interactive Background Layers */}
+      <div className="cyber-bg" />
+      <div className="cyber-noise" />
+      <div className="cyber-topo" />
+
+      {/* Sci-Fi Top Grid and Coordinates Area */}
+      <div className="absolute top-6 left-6 right-6 flex justify-between items-start text-[10px] text-[#39f0d9]/60 tracking-widest z-20">
+        <div className="flex flex-col gap-1 border-l-2 border-[#39f0d9]/40 pl-3">
+          <span>COORDINATES: {coordinates}</span>
+          <span>SYSTEM: AI UDAAN SECURE NODE</span>
+        </div>
+        <div className="flex flex-col gap-1 text-right border-r-2 border-[#39f0d9]/40 pr-3">
+          <span>TIMESTAMP: {timestamp || 'LOADING...'}</span>
+          <span>STATUS: SECURE TERMINAL</span>
+        </div>
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className='glass-container p-8 w-full max-w-md'
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className='w-full max-w-md cyber-glass-panel p-8 md:p-10 relative z-10'
       >
+        {/* Topographic Scanner Line Animation */}
+        <div className="cyber-scanner-line" />
+
+        {/* Clearances Stamp */}
+        <div className="absolute top-6 right-6">
+          <span className="cyber-stamp">LEVEL 3 ACCESS</span>
+        </div>
+
         {/* Header */}
-        <div className='text-center mb-8'>
-          <h1 className='heading-2 mb-2'>Welcome Back</h1>
-          <p className='text-white/60'>Sign in to your AI Learn NG account</p>
+        <div className='mb-8 pt-4'>
+          <div className="text-[10px] uppercase tracking-[0.3em] text-[#39f0d9] font-bold mb-2">
+            OPERATIVE IDENTIFICATION
+          </div>
+          <h1 className='text-2xl font-bold text-white tracking-wider uppercase' data-text="SECURE LOGIN">
+            SECURE LOGIN
+          </h1>
+          <p className='text-slate-400 text-xs mt-2 font-sans'>
+            Decrypt credential nodes to access your cohort terminal dashboard.
+          </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <Input
-            label='Email or Username'
-            type='text'
-            placeholder='Enter your Email or Username'
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            error={error ? 'Invalid credentials' : undefined}
-          />
-          <Input
-            label='Password'
-            type='password'
-            placeholder='••••••••'
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+        <form onSubmit={handleSubmit} className='space-y-6'>
+          <div>
+            <label className='block text-[10px] font-bold text-[#39f0d9]/80 uppercase tracking-widest mb-2'>
+              OPERATIVE EMAIL / USERNAME
+            </label>
+            <div className='relative'>
+              <span className='cyber-input-prefix'>&gt;</span>
+              <input
+                type='text'
+                placeholder='SECURE ID / EMAIL'
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className='cyber-input'
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className='block text-[10px] font-bold text-[#39f0d9]/80 uppercase tracking-widest mb-2'>
+              CLEARANCE ACCESS CODE
+            </label>
+            <div className='relative'>
+              <span className='cyber-input-prefix secure'>#</span>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder='PASSWORD HASH'
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className='cyber-input pr-12'
+              />
+              <button
+                type='button'
+                onClick={() => setShowPassword(!showPassword)}
+                className='absolute right-3 top-1/2 -translate-y-1/2 text-[#39f0d9]/60 hover:text-[#39f0d9] focus:outline-none text-[9px] font-bold tracking-widest uppercase border border-[#39f0d9]/20 px-2 py-0.5 rounded bg-[#0a0d14]'
+              >
+                {showPassword ? 'HIDE' : 'VIEW'}
+              </button>
+            </div>
+          </div>
+
+          {/* Form Options */}
+          <div className="flex items-center justify-between text-xs tracking-wider">
+            <div
+              className="flex items-center gap-2 cursor-pointer text-[#39f0d9]/70 hover:text-[#39f0d9] transition"
+              onClick={() => setStealthLogin(!stealthLogin)}
+            >
+              <div className={`cyber-toggle ${stealthLogin ? 'checked' : ''}`}>
+                {stealthLogin && <span className="text-[10px] text-slate-900 font-bold">✓</span>}
+              </div>
+              <span className="text-[10px] font-sans">Enable Stealth Session</span>
+            </div>
+            
+            <a href='#' className='text-[10px] text-[#39f0d9]/70 hover:text-[#39f0d9] transition underline-offset-4 hover:underline'>
+              Recover Code
+            </a>
+          </div>
 
           {error && (
-            <div className='p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm'>
-              {error}
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className='p-4 bg-red-950/40 border border-red-500/30 rounded-lg text-red-400 text-xs font-semibold'
+            >
+              ⚠️ STACK ERROR: {error.toUpperCase()}
+            </motion.div>
           )}
 
-          <Button
+          {/* Glowing Premium Cyber Authentication Button */}
+          <button
             type='submit'
-            isLoading={loading}
-            className='w-full'
+            disabled={loading}
+            className='cyber-btn transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            Sign In
-          </Button>
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-3 h-3 border border-[#39f0d9] border-t-transparent rounded-full animate-spin" />
+                AUTHENTICATING NODE...
+              </span>
+            ) : (
+              'INITIALIZE CLEARANCE'
+            )}
+            
+            {/* Embedded Active Indicators */}
+            <div className="absolute bottom-2 right-3 flex gap-1.5 z-20">
+              <div className={`cyber-indicator ${isEmailActive ? 'active' : ''}`} />
+              <div className={`cyber-indicator ${isPasswordActive ? 'active' : ''}`} />
+              <div className={`cyber-indicator ${loading ? 'active' : ''}`} />
+            </div>
+          </button>
         </form>
 
-        {/* Forgot Password */}
-        <div className='mt-4 text-center'>
-          <a href='#' className='text-primary-400 hover:text-primary-300 text-sm'>
-            Forgot password?
-          </a>
-        </div>
-
-        {/* Divider */}
-        <div className='my-6 flex items-center gap-4'>
-          <div className='flex-1 h-px bg-white/10'></div>
-          <span className='text-white/50 text-sm'>or</span>
-          <div className='flex-1 h-px bg-white/10'></div>
-        </div>
-
-        {/* Social Login */}
-        <div className='space-y-3'>
-          <button type='button' className='w-full glass-button-secondary'>
-            Continue with Google
-          </button>
-          <button type='button' className='w-full glass-button-secondary'>
-            Continue with GitHub
-          </button>
-        </div>
-
-        {/* Sign Up Link */}
-        <div className='mt-6 text-center'>
-          <p className='text-white/60'>
-            Don't have an account?{' '}
-            <Link href='/sign-up' className='text-primary-400 hover:text-primary-300'>
-              Sign up
+        {/* Footer Navigation Link */}
+        <div className='mt-8 pt-6 border-t border-[#39f0d9]/10 text-center font-sans'>
+          <p className='text-slate-400 text-xs'>
+            No field credentials node?{' '}
+            <Link href='/sign-up' className='font-bold text-[#39f0d9] hover:underline underline-offset-4 tracking-wider transition'>
+              REGISTER ACCESS REQUEST
             </Link>
           </p>
         </div>

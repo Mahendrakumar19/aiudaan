@@ -20,11 +20,11 @@ export function Navbar() {
 
   const navLinks = [
     { href: '/#flagshipevents', label: 'Explore' },
-    { href: '/#whyH2s', label: 'Why BIT Gaya' },
+    // { href: '/#whyH2s', label: 'Why AI Udaan' },
     { href: '/blog', label: 'Blogs' },
-    { href: 'http://bitgaya.org', label: 'College Site' },
+    { href: '/journey', label: 'Our Journey' },
     { href: '/#programs', label: 'Our Initiatives' },
-    // { href: '/dashboard', label: 'My Dashboard' },
+    { href: '/dashboard', label: 'My Dashboard' },
   ]
 
   return (
@@ -36,7 +36,8 @@ export function Navbar() {
             <Image src='/images/logo.png' alt="AI Udaan Logo" width={65} height={100} />
           </div>
           <div className="flex flex-col min-w-0 border-l border-slate-300 pl-3">
-            <span className="text-[10px] uppercase tracking-[0.32em] text-[#3462ae] font-semibold leading-none">Buddha Institute of Technology</span>
+            <span className="text-[14px] uppercase tracking-[0.25em] text-[#3462ae] font-black leading-none">AI UDAAN</span>
+            <span className="text-[8px] uppercase tracking-[0.15em] text-slate-400 font-semibold mt-1">Upskilling & Innovation</span>
           </div>
         </Link>
 
