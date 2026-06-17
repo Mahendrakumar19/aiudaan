@@ -18,33 +18,57 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify credentials against Moodle LMS
-    const moodleAuth = await authenticateMoodleUser(email, password)
-
-    if (!moodleAuth.success) {
-      return NextResponse.json(
-        { message: 'Invalid email or password' },
-        { status: 401 }
-      )
+    let moodleAuth = { success: false }
+    try {
+      moodleAuth = await authenticateMoodleUser(email, password)
+    } catch (err) {
+      logger.error('Error during Moodle authentication', err)
     }
 
-    // Resolve canonical user details from Moodle
+    // Resolve canonical user details from Moodle or local
     let canonicalEmail = email.trim().toLowerCase()
     let fullName = email.split('@')[0]
 
-    try {
-      const moodleUserRes = await getMoodleUser(email)
-      if (moodleUserRes.success && moodleUserRes.user) {
-        canonicalEmail = moodleUserRes.user.email || canonicalEmail
-        fullName = moodleUserRes.user.fullname || `${moodleUserRes.user.firstname} ${moodleUserRes.user.lastname || ''}`.trim() || fullName
+    if (moodleAuth.success) {
+      try {
+        const moodleUserRes = await getMoodleUser(email)
+        if (moodleUserRes.success && moodleUserRes.user) {
+          canonicalEmail = moodleUserRes.user.email || canonicalEmail
+          fullName = moodleUserRes.user.fullname || `${moodleUserRes.user.firstname} ${moodleUserRes.user.lastname || ''}`.trim() || fullName
+        }
+      } catch (moodleError) {
+        logger.error('Failed to resolve Moodle user details on login', moodleError)
       }
-    } catch (moodleError) {
-      logger.error('Failed to resolve Moodle user details on login', moodleError)
     }
 
-    // Find or create user locally using their verified email
-    let user = await prisma.user.findUnique({
-      where: { email: canonicalEmail },
+    // Find user locally using entered email or canonical email
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: canonicalEmail },
+          { email: email.trim().toLowerCase() }
+        ]
+      },
     })
+
+    if (!moodleAuth.success) {
+      // Local Database Auth Fallback check
+      if (user && user.password) {
+        const { verifyPassword } = await import('@/lib/auth/jwt')
+        const passwordMatch = await verifyPassword(password, user.password)
+        if (!passwordMatch) {
+          return NextResponse.json(
+            { message: 'Invalid email or password' },
+            { status: 401 }
+          )
+        }
+      } else {
+        return NextResponse.json(
+          { message: 'Invalid email or password' },
+          { status: 401 }
+        )
+      }
+    }
 
     if (!user) {
       // Create a local placeholder for the synced Moodle user

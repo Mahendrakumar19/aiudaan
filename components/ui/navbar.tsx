@@ -6,8 +6,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import LanguageSwitcher from './language-switcher'
 import { useLanguage } from '@/lib/i18n/LanguageContext'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 
 export function Navbar() {
+  const pathname = usePathname()
   const [scrolled, setScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { t } = useLanguage()
@@ -17,6 +19,10 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
 
   const navLinks = [
     { href: '/#flagshipevents', label: 'Explore' },

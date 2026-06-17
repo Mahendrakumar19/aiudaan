@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent, useEffect } from 'react'
+import { useState, FormEvent } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/hooks'
@@ -13,33 +13,7 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false)
   const [protocolAccepted, setProtocolAccepted] = useState(false)
   const [error, setError] = useState('')
-  const [timestamp, setTimestamp] = useState('')
-  const coordinates = '25°04′N 85°00′E' // AI Udaan region
   const { register, loading } = useAuth()
-
-  // Dynamic timestamp updates (UTC)
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date()
-      const utcStr = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC'
-      setTimestamp(utcStr)
-    }
-    updateTime()
-    const timer = setInterval(updateTime, 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-  // Mouse tracking for spotlight effect
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const x = (e.clientX / window.innerWidth) * 100
-      const y = (e.clientY / window.innerHeight) * 100
-      document.documentElement.style.setProperty('--mouse-x', `${x}%`)
-      document.documentElement.style.setProperty('--mouse-y', `${y}%`)
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -61,7 +35,7 @@ export default function SignUp() {
     }
 
     if (!protocolAccepted) {
-      setError('You must accept the AI Udaan Field Protocol terms')
+      setError('You must accept the terms and conditions')
       return
     }
 
@@ -72,197 +46,163 @@ export default function SignUp() {
     }
   }
 
-  // Active status indicators based on input fields filled status
-  const isNameActive = name.length > 0
-  const isEmailActive = email.length > 0
-  const isPasswordActive = password.length > 5
-  const isConfirmActive = confirmPassword.length > 0 && confirmPassword === password
-
   return (
-    <div className='min-h-[90vh] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden cyber-auth-body font-mono select-none'>
-      {/* Decorative Interactive Background Layers */}
-      <div className="cyber-bg" />
-      <div className="cyber-noise" />
-      <div className="cyber-topo" />
+    <div className='min-h-[95vh] flex flex-col items-center justify-center px-4 py-12 relative overflow-hidden'>
+      {/* Premium Background Elements */}
+      <div className="bg-mesh" />
+      <div className="grid-lines" />
 
-      {/* Sci-Fi Top Grid and Coordinates Area */}
-      <div className="absolute top-6 left-6 right-6 flex justify-between items-start text-[10px] text-[#39f0d9]/60 tracking-widest z-20">
-        <div className="flex flex-col gap-1 border-l-2 border-[#39f0d9]/40 pl-3">
-          <span>COORDINATES: {coordinates}</span>
-          <span>SYSTEM: AI UDAAN SECURE NODE</span>
-        </div>
-        <div className="flex flex-col gap-1 text-right border-r-2 border-[#39f0d9]/40 pr-3">
-          <span>TIMESTAMP: {timestamp || 'LOADING...'}</span>
-          <span>STATUS: SECURE TERMINAL</span>
-        </div>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        className='w-full max-w-md cyber-glass-panel p-8 md:p-10 relative z-10'
-      >
-        {/* Topographic Scanner Line Animation */}
-        <div className="cyber-scanner-line" />
-
-        {/* Clearances Stamp */}
-        <div className="absolute top-6 right-6">
-          <span className="cyber-stamp">LEVEL 1 CADET</span>
+      {/* Main Container */}
+      <div className="w-full max-w-md relative z-10">
+        {/* Brand Logo/Header */}
+        <div className="text-center mb-8">
+          <Link href="/" className="inline-block">
+            <span className="font-syne text-2xl font-black tracking-tight bg-gradient-to-r from-[#3462ae] to-[#1548b7] bg-clip-text text-transparent">
+              AI UDAAN
+            </span>
+          </Link>
         </div>
 
-        {/* Header */}
-        <div className='mb-6 pt-4'>
-          <div className="text-[10px] uppercase tracking-[0.3em] text-[#39f0d9] font-bold mb-2">
-            OPERATIVE REGISTRATION
+        {/* Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className='w-full glass p-8 md:p-10 rounded-3xl relative overflow-hidden'
+        >
+          {/* Header */}
+          <div className='mb-6 text-center'>
+            <h1 className='text-3xl font-extrabold text-slate-900 font-syne tracking-tight mb-2'>
+              Create Account
+            </h1>
+            <p className='text-slate-500 text-sm'>
+              Register to start your learning journey with AI Udaan.
+            </p>
           </div>
-          <h1 className='text-2xl font-bold text-white tracking-wider uppercase' data-text="REQUEST ACCESS">
-            REQUEST ACCESS
-          </h1>
-          <p className='text-slate-400 text-xs mt-2 font-sans'>
-            Register operative node on the secure learning mainframe database.
-          </p>
-        </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className='space-y-4'>
-          <div>
-            <label className='block text-[10px] font-bold text-[#39f0d9]/80 uppercase tracking-widest mb-1.5'>
-              OPERATIVE FULL NAME
-            </label>
-            <div className='relative'>
-              <span className='cyber-input-prefix'>&gt;</span>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className='space-y-4'>
+            <div>
+              <label className='block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5'>
+                Full Name
+              </label>
               <input
                 type='text'
-                placeholder='SURNAME, GIVEN NAME'
+                placeholder='Enter your full name'
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className='cyber-input'
+                className='w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#3462ae] transition duration-200 text-slate-900 placeholder:text-slate-400 bg-white/80'
               />
             </div>
-          </div>
 
-          <div>
-            <label className='block text-[10px] font-bold text-[#39f0d9]/80 uppercase tracking-widest mb-1.5'>
-              FIELD EMAIL ADDRESS
-            </label>
-            <div className='relative'>
-              <span className='cyber-input-prefix'>#</span>
+            <div>
+              <label className='block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5'>
+                Email Address
+              </label>
               <input
                 type='email'
-                placeholder='SECURE EMAIL ADDRESS'
+                placeholder='Enter your email address'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className='cyber-input'
+                className='w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#3462ae] transition duration-200 text-slate-900 placeholder:text-slate-400 bg-white/80'
               />
             </div>
-          </div>
 
-          <div>
-            <label className='block text-[10px] font-bold text-[#39f0d9]/80 uppercase tracking-widest mb-1.5'>
-              CREATE SECURITY CODE
-            </label>
-            <div className='relative'>
-              <span className='cyber-input-prefix secure'>#</span>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder='MIN 6 CHARS PASSWORD'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className='cyber-input pr-12'
-              />
-              <button
-                type='button'
-                onClick={() => setShowPassword(!showPassword)}
-                className='absolute right-3 top-1/2 -translate-y-1/2 text-[#39f0d9]/60 hover:text-[#39f0d9] focus:outline-none text-[9px] font-bold tracking-widest uppercase border border-[#39f0d9]/20 px-2 py-0.5 rounded bg-[#0a0d14]'
-              >
-                {showPassword ? 'HIDE' : 'VIEW'}
-              </button>
+            <div>
+              <label className='block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5'>
+                Password
+              </label>
+              <div className='relative'>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='At least 6 characters'
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className='w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#3462ae] transition duration-200 text-slate-900 placeholder:text-slate-400 bg-white/80 pr-12'
+                />
+                <button
+                  type='button'
+                  onClick={() => setShowPassword(!showPassword)}
+                  className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none text-xs font-bold tracking-wider'
+                >
+                  {showPassword ? 'HIDE' : 'SHOW'}
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label className='block text-[10px] font-bold text-[#39f0d9]/80 uppercase tracking-widest mb-1.5'>
-              CONFIRM ACCESS CODE
-            </label>
-            <div className='relative'>
-              <span className='cyber-input-prefix secure'>#</span>
+            <div>
+              <label className='block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5'>
+                Confirm Password
+              </label>
               <input
                 type={showPassword ? 'text' : 'password'}
-                placeholder='RE-ENTER PASSWORD'
+                placeholder='Re-enter your password'
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className='cyber-input'
+                className='w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-[#3462ae] transition duration-200 text-slate-900 placeholder:text-slate-400 bg-white/80'
               />
             </div>
-          </div>
 
-          {/* Protocol Acceptance */}
-          <div className="flex items-start gap-2.5 text-[10px] tracking-wide text-slate-300 leading-normal font-sans py-2">
-            <div
-              className={`cyber-toggle mt-0.5 flex-shrink-0 ${protocolAccepted ? 'checked' : ''}`}
-              onClick={() => setProtocolAccepted(!protocolAccepted)}
-            >
-              {protocolAccepted && <span className="text-[10px] text-slate-900 font-bold">✓</span>}
-            </div>
-            <span>
-              I acknowledge the <span className="text-[#39f0d9] font-mono">AI Udaan Field Protocol</span> and accept security terms for premium cohorts.
-            </span>
-          </div>
-
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className='p-4 bg-red-950/40 border border-red-500/30 rounded-lg text-red-400 text-xs font-semibold'
-            >
-              ⚠️ STACK ERROR: {error.toUpperCase()}
-            </motion.div>
-          )}
-
-          {/* Glowing Premium Cyber Onboarding Button */}
-          <button
-            type='submit'
-            disabled={loading}
-            className='cyber-btn transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mt-2'
-          >
-            {loading ? (
-              <span className="flex items-center justify-center gap-2">
-                <span className="w-3 h-3 border border-[#39f0d9] border-t-transparent rounded-full animate-spin" />
-                CREATING NODE...
+            {/* Protocol Acceptance */}
+            <div className="flex items-start gap-2.5 text-xs text-slate-600 leading-normal py-2 select-none cursor-pointer" onClick={() => setProtocolAccepted(!protocolAccepted)}>
+              <div className={`w-4 h-4 border border-slate-300 rounded flex items-center justify-center flex-shrink-0 mt-0.5 transition ${protocolAccepted ? 'bg-[#3462ae] border-[#3462ae]' : 'bg-white'}`}>
+                {protocolAccepted && (
+                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span>
+                I agree to the <span className="font-bold text-[#3462ae]">AI Udaan Terms</span> and accept enrollment guidelines.
               </span>
-            ) : (
-              'INITIALIZE CLEARANCE'
-            )}
-            
-            {/* Embedded Active Indicators */}
-            <div className="absolute bottom-2 right-3 flex gap-1.5 z-20">
-              <div className={`cyber-indicator ${isNameActive ? 'active' : ''}`} />
-              <div className={`cyber-indicator ${isEmailActive ? 'active' : ''}`} />
-              <div className={`cyber-indicator ${isPasswordActive && isConfirmActive ? 'active' : ''}`} />
-              <div className={`cyber-indicator ${loading ? 'active' : ''}`} />
             </div>
-          </button>
-        </form>
 
-        {/* Terms Links */}
-        <p className='text-slate-400 text-[9px] text-center mt-4 leading-normal font-sans'>
-          By signing up, you agree to our{' '}
-          <Link href="/terms-and-conditions" className="hover:underline text-[#39f0d9]">Terms of Service</Link>{' '}
-          and{' '}
-          <Link href="/privacy-policy" className="hover:underline text-[#39f0d9]">Privacy Policy</Link>
-        </p>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className='p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold'
+              >
+                {error}
+              </motion.div>
+            )}
 
-        {/* Sign In Link */}
-        <div className='mt-6 pt-5 border-t border-[#39f0d9]/10 text-center font-sans'>
-          <p className='text-slate-400 text-xs'>
-            Operative already node registered?{' '}
-            <Link href='/sign-in' className='font-bold text-[#39f0d9] hover:underline underline-offset-4 tracking-wider transition'>
-              AUTHENTICATE NODE
-            </Link>
+            {/* CTA Button */}
+            <button
+              type='submit'
+              disabled={loading}
+              className='w-full py-3.5 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-white bg-gradient-to-r from-[#3462ae] to-[#1548b7] hover:shadow-lg hover:shadow-blue-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed mt-2'
+            >
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Creating Account...
+                </span>
+              ) : (
+                'Create Account'
+              )}
+            </button>
+          </form>
+
+          {/* Terms Links */}
+          <p className='text-slate-400 text-[10px] text-center mt-4 leading-normal'>
+            By signing up, you agree to our{' '}
+            <Link href="/terms-and-conditions" className="hover:underline text-[#3462ae] font-semibold">Terms of Service</Link>{' '}
+            and{' '}
+            <Link href="/privacy-policy" className="hover:underline text-[#3462ae] font-semibold">Privacy Policy</Link>.
           </p>
-        </div>
-      </motion.div>
+
+          {/* Sign In Link */}
+          <div className='mt-6 pt-5 border-t border-slate-100 text-center'>
+            <p className='text-slate-500 text-sm'>
+              Already have an account?{' '}
+              <Link href='/sign-in' className='font-bold text-[#3462ae] hover:underline underline-offset-4 transition'>
+                Sign In
+              </Link>
+            </p>
+          </div>
+        </motion.div>
+      </div>
     </div>
   )
 }

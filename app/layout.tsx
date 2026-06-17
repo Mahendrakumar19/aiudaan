@@ -1,14 +1,11 @@
 import './globals.css'
-import { Navbar } from '@/components/ui/navbar'
-import { Footer } from '@/components/shared/footer'
-import WhatsAppButton from '@/components/ui/whatsapp-button'
 import ClientProviders from '@/components/providers/ClientProviders'
 import { Inter } from 'next/font/google'
 import type { Metadata } from 'next'
+import MainLayoutWrapper from '@/components/layout/MainLayoutWrapper'
 import SchemaMarkup from '@/components/seo/schema-markup'
 import GoogleAnalytics from '@/components/seo/google-analytics'
 import MicrosoftClarity from '@/components/seo/microsoft-clarity'
-import UTMTracker from '@/components/seo/utm-tracker'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -126,14 +123,9 @@ export default function RootLayout({
       </head>
       <body className='bg-white font-inter text-slate-900 antialiased selection:bg-blue-100 selection:text-slate-900'>
         <ClientProviders>
-          <UTMTracker>
-            <Navbar />
-          </UTMTracker>
-          <main className='pt-24 bg-white relative z-10'>
+          <MainLayoutWrapper>
             {children}
-          </main>
-          <Footer />
-          <WhatsAppButton />
+          </MainLayoutWrapper>
           <SchemaMarkup />
         </ClientProviders>
       </body>

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return response
     }
 
-    // Validate credentials
+    // Validate credentials locally first
     if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
       const response = NextResponse.json({
         success: true,
@@ -49,6 +49,42 @@ export async function POST(request: NextRequest) {
         response.headers.set(key, value)
       })
       return response
+    }
+
+    // Fallback: Check authentication with Moodle's token.php service
+    try {
+      const moodleUrl = (process.env.MOODLE_URL || '').replace(/\/+$/, '');
+      if (moodleUrl) {
+        // Moodle Mobile App service name is standard on all Moodle sites for login token generation
+        const url = `${moodleUrl}/login/token.php?username=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&service=moodle_mobile_app`;
+        
+        console.log(`🔒 Authenticating "${email}" against Moodle token service...`);
+        const moodleRes = await fetch(url, {
+          method: 'POST',
+          cache: 'no-store'
+        });
+
+        if (moodleRes.ok) {
+          const authData = await moodleRes.json();
+          if (authData.token) {
+            console.log(`✅ Moodle login succeeded for: ${email}`);
+            const response = NextResponse.json({
+              success: true,
+              message: 'Login successful via Moodle auth',
+              moodleToken: authData.token
+            });
+            const corsHeaders = getCORSHeaders();
+            corsHeaders.forEach((value, key) => {
+              response.headers.set(key, value);
+            });
+            return response;
+          } else if (authData.error) {
+            console.warn(`⚠️ Moodle login failed: ${authData.error}`);
+          }
+        }
+      }
+    } catch (moodleAuthErr: any) {
+      console.error('❌ Moodle authentication server request failed:', moodleAuthErr.message);
     }
 
     const response = NextResponse.json(

@@ -41,10 +41,12 @@ export async function GET(request: NextRequest) {
 
     // Overlay details from Moodle
     let name = user.name
+    let moodleUsername: string | undefined = undefined
     try {
       const moodleRes = await getMoodleUser(user.email)
       if (moodleRes.success && moodleRes.user) {
         name = moodleRes.user.fullname || `${moodleRes.user.firstname} ${moodleRes.user.lastname || ''}`.trim() || user.name
+        moodleUsername = moodleRes.user.username // e.g. 'mahi'
       }
     } catch (moodleError) {
       logger.error('Failed to overlay Moodle details in /api/auth/me', moodleError)
@@ -55,6 +57,7 @@ export async function GET(request: NextRequest) {
     const mergedUser = {
       ...userWithoutPassword,
       name,
+      ...(moodleUsername ? { moodleUsername } : {}),
     }
 
     return NextResponse.json(mergedUser)

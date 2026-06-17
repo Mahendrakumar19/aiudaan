@@ -29,17 +29,6 @@
       ],
       "bg": "./images/college.jpeg",
       "cta": "Campus Tour"
-    },
-    {
-      "title": "nnew",
-      "stats": [
-        {
-          "value": "0",
-          "label": "Metric"
-        }
-      ],
-      "bg": "./images/college.jpeg",
-      "cta": "Learn More"
     }
   ],
   "programs": [

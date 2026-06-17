@@ -1,22 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useAuth } from '@/hooks'
 import Link from 'next/link'
 import Cookies from 'js-cookie'
+import { useSearchParams } from 'next/navigation'
 
-export default function Dashboard() {
+function DashboardContent() {
   const { user, isAuthenticated, logout } = useAuth()
-  const [activeTab, setActiveTab] = useState<'events' | 'teams' | 'camps'>('events')
+  const searchParams = useSearchParams()
+  const tabParam = searchParams?.get('activeTab') as 'events' | 'teams' | 'camps' | null
+  const [activeTab, setActiveTab] = useState<'events' | 'teams' | 'camps'>(tabParam || 'events')
 
   const [enrolledCourses, setEnrolledCourses] = useState<any[]>([])
   const [allCourses, setAllCourses] = useState<any[]>([])
   const [loadingCourses, setLoadingCourses] = useState(false)
 
-  useEffect(() => {
-    if (!isAuthenticated) return
-
-    const fetchMoodleData = async () => {
+  const fetchMoodleData = useCallback(async () => {
       setLoadingCourses(true)
       const token = Cookies.get('token')
       try {
@@ -44,10 +44,25 @@ export default function Dashboard() {
       } finally {
         setLoadingCourses(false)
       }
-    }
+    }, [])
 
+  useEffect(() => {
+    if (!isAuthenticated) return
     fetchMoodleData()
-  }, [isAuthenticated])
+  }, [isAuthenticated, fetchMoodleData])
+
+  // Re-fetch when user returns to tab (e.g. after enrollment)
+  useEffect(() => {
+    if (!isAuthenticated) return
+    const handleFocus = () => fetchMoodleData()
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [isAuthenticated, fetchMoodleData])
+
+  // Sync active tab from URL param
+  useEffect(() => {
+    if (tabParam) setActiveTab(tabParam)
+  }, [tabParam])
 
   if (!isAuthenticated) {
     return (
@@ -314,19 +329,22 @@ export default function Dashboard() {
                   ) : (
                     <div className='space-y-4'>
                       {enrolledCourses.map((camp, index) => (
-                        <div key={index} className='p-5 border border-slate-200 rounded-2xl bg-slate-50/50 hover:border-[#3462AE]/30 transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
-                          <div>
-                            <h4 className='font-bold text-slate-900 text-sm sm:text-base'>{camp.fullname}</h4>
-                            <p className='text-slate-500 text-xs mt-1'>Course Code: <strong className="text-slate-700">{camp.shortname}</strong></p>
+                        <div key={index} className='p-5 border border-slate-200 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/30 hover:border-[#3462AE]/40 hover:shadow-md transition flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4'>
+                          <div className='flex items-start gap-3 flex-1 min-w-0'>
+                            <div className='w-10 h-10 rounded-xl bg-[#3462AE]/10 border border-[#3462AE]/20 flex items-center justify-center shrink-0 text-[#3462AE] font-black text-sm'>
+                              {(camp.fullname || '?')[0]}
+                            </div>
+                            <div className='min-w-0'>
+                              <h4 className='font-bold text-slate-900 text-sm sm:text-base truncate'>{camp.fullname}</h4>
+                              <p className='text-slate-500 text-xs mt-0.5'>Code: <strong className="text-slate-700 font-mono">{camp.shortname}</strong></p>
+                            </div>
                           </div>
-                          <a
-                            href={`https://moodle.aiudaanbootcamp.com/course/view.php?id=${camp.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className='px-4 py-2 bg-[#3462AE] hover:bg-[#1548B7] text-white rounded-xl text-xs font-bold transition shadow-sm'
+                          <Link
+                            href={`/learn/${camp.id}`}
+                            className='shrink-0 px-4 py-2 bg-[#3462AE] hover:bg-[#1548B7] text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5'
                           >
-                            Go to Class ↗
-                          </a>
+                            <span>▶</span> Continue Learning
+                          </Link>
                         </div>
                       ))}
                     </div>
@@ -353,11 +371,11 @@ export default function Dashboard() {
                               <p className='text-slate-500 text-xs mt-1 line-clamp-2' dangerouslySetInnerHTML={{ __html: camp.summary || 'No description available.' }} />
                             </div>
                             <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                              <span className="text-xs font-bold text-slate-900">₹499 (Online Course)</span>
+                              <span className="text-xs font-bold text-slate-900">{Number(camp.price || 499) === 0 ? 'Free' : `₹${camp.price || 499}`}</span>
                               {isEnrolled ? (
-                                <span className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-3 py-1.5 rounded-full font-bold">
-                                  ✓ Enrolled
-                                </span>
+                                <Link href={`/learn/${camp.id}`} className="flex items-center gap-1.5 text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 px-3 py-1.5 rounded-full font-bold hover:bg-emerald-100 transition">
+                                  ▶ Start Learning
+                                </Link>
                               ) : (
                                 <Link href="/courses">
                                   <button className="px-3 py-1.5 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl transition">
@@ -380,5 +398,17 @@ export default function Dashboard() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="text-slate-400">Loading dashboard...</div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   )
 }

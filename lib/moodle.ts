@@ -241,13 +241,14 @@ export async function getMoodleCourses(): Promise<{ success: boolean; courses?: 
 
 /**
  * Fetches all courses a specific user is enrolled in.
+ * @param usernameOrEmail - Moodle username (e.g. 'mahi') or email (e.g. 'mahi@example.com')
  */
 export async function getUserEnrolledCourses(
-  email: string
+  usernameOrEmail: string
 ): Promise<{ success: boolean; courses?: any[]; error?: string }> {
   try {
-    // 1. Resolve Moodle User ID
-    const moodleUserRes = await getMoodleUser(email)
+    // 1. Resolve Moodle User ID (works with both username and email)
+    const moodleUserRes = await getMoodleUser(usernameOrEmail)
     if (!moodleUserRes.success || !moodleUserRes.user) {
       return { success: false, error: moodleUserRes.error || 'Failed to resolve user' }
     }
@@ -256,7 +257,7 @@ export async function getUserEnrolledCourses(
 
     // 2. Fetch enrolled courses
     const params = new URLSearchParams()
-    params.append('wstoken', MOODLE_COURSE_TOKEN)
+    params.append('wstoken', process.env.MOODLE_TOKEN || MOODLE_COURSE_TOKEN)
     params.append('wsfunction', 'core_enrol_get_users_courses')
     params.append('moodlewsrestformat', 'json')
     params.append('userid', String(moodleUserId))
@@ -299,14 +300,16 @@ const MOODLE_ENROL_TOKEN = process.env.MOODLE_ENROL_TOKEN || MOODLE_WSTOKEN
 
 /**
  * Enrolls a Moodle user in a course manually.
+ * @param usernameOrEmail - Moodle username (e.g. 'mahi') or email
+ * @param courseId - Moodle numeric course ID
  */
 export async function enrollMoodleUserInCourse(
-  email: string,
+  usernameOrEmail: string,
   courseId: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    // 1. Resolve Moodle User ID
-    const moodleUserRes = await getMoodleUser(email)
+    // 1. Resolve Moodle User ID (handles both username and email)
+    const moodleUserRes = await getMoodleUser(usernameOrEmail)
     if (!moodleUserRes.success || !moodleUserRes.user) {
       return { success: false, error: moodleUserRes.error || 'Failed to resolve user' }
     }

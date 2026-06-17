@@ -59,10 +59,14 @@ function getTransporter() {
  * Generate HTML email template
  */
 function generateEmailTemplate(payload: EmailPayload): string {
-  const planName =
-    payload.plan === 'basic'
-      ? 'Without Accommodation'
-      : 'With Accommodation'
+  let planName = 'With Accommodation'
+  if (payload.plan === 'basic') {
+    planName = 'Without Accommodation'
+  } else if (payload.bootcampType) {
+    planName = payload.bootcampType
+  } else if (payload.plan && payload.plan !== 'premium') {
+    planName = payload.plan
+  }
   const amount = payload.amount / 100 // Convert from paise
   const orderDate = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -264,15 +268,25 @@ export async function sendConfirmationEmail(
       return false
     }
 
+    // Resolve recipient — prefer explicit 'to', fallback to 'email'
+    const recipient = (payload.to && payload.to.includes('@')) ? payload.to
+      : (payload.email && payload.email.includes('@')) ? payload.email
+      : null
+
+    if (!recipient) {
+      console.warn('⚠️ Email skipped: no valid recipient address (to/email missing or not a real email)')
+      return false
+    }
+
     const mailOptions = {
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER || 'noreply@aiudaanbootcamp.com',
-      to: payload.email,
+      to: recipient,
       subject: `Registration Confirmed - AI Udaan Bootcamp (Order: ${payload.orderId})`,
       html: generateEmailTemplate(payload),
     }
 
     await transporter.sendMail(mailOptions)
-    console.log('✅ Email sent successfully to:', payload.email)
+    console.log('✅ Email sent successfully to:', recipient)
     return true
   } catch (error) {
     console.error('❌ Email sending failed:', error)

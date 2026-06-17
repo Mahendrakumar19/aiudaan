@@ -2,9 +2,15 @@
 
 import Link from 'next/link'
 import Image from 'next/image';
+import { usePathname } from 'next/navigation'
 
 export const Footer = () => {
+  const pathname = usePathname()
   const currentYear = new Date().getFullYear()
+
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
 
   return (
     <footer className="footer-bg py-20 relative overflow-hidden bg-[#0a0f1d] text-white">

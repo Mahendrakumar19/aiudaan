@@ -43,7 +43,7 @@ export default function CheckoutPage() {
             return
           }
 
-          if (user) {
+        if (user) {
             setUserData({
               name: user.name,
               email: user.email,
@@ -53,7 +53,8 @@ export default function CheckoutPage() {
               state: user.state || '',
               district: user.district || '',
               class: user.class || '',
-              aiDomain: user.aiDomain || ''
+              aiDomain: user.aiDomain || '',
+              moodleUsername: (user as any).moodleUsername || '',
             })
           }
         }
@@ -117,7 +118,20 @@ export default function CheckoutPage() {
       const data = await response.json()
 
       if (!data.success) {
-        throw new Error(data.error || 'Failed to create order')
+        throw new Error(data.message || data.error || 'Failed to create order')
+      }
+
+      if (data.isFree) {
+        console.log('Free enrollment successful')
+        localStorage.removeItem('registrationData')
+        localStorage.removeItem('checkoutCourse')
+        
+        if (checkoutCourse) {
+          router.push('/dashboard?activeTab=camps')
+        } else {
+          router.push(`/success?name=${encodeURIComponent(userData?.name || '')}&email=${encodeURIComponent(userData?.email || '')}`)
+        }
+        return
       }
 
       initializeRazorpay(data)
@@ -303,7 +317,13 @@ export default function CheckoutPage() {
                 <div className="flex justify-between items-center pt-4">
                   <span className="text-lg font-bold text-slate-950">Amount to pay</span>
                   <span className="text-3xl font-black text-brand-blue">
-                    ₹{checkoutCourse ? '499' : (userData.plan === 'standard' ? '2,499' : '999')}
+                    {checkoutCourse 
+                      ? (Number(checkoutCourse.price ?? 0) === 0 
+                          ? <span className="text-emerald-600">FREE</span>
+                          : `₹${Number(checkoutCourse.price).toLocaleString('en-IN')}`)
+                      : (userData.plan === 'standard' 
+                        ? '₹2,499' 
+                        : (userData.plan === 'online' ? '₹499' : '₹999'))}
                   </span>
                 </div>
               </div>
@@ -335,9 +355,17 @@ export default function CheckoutPage() {
               <button
                 onClick={createOrder}
                 disabled={isLoading}
-                className="w-full px-6 py-4 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-brand-blue to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-[0_14px_30px_rgba(37,99,235,0.18)]"
+                className={`w-full px-6 py-4 rounded-xl font-bold text-white text-lg transition-all shadow-[0_14px_30px_rgba(37,99,235,0.18)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                  checkoutCourse && Number(checkoutCourse.price ?? 0) === 0
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700'
+                    : 'bg-gradient-to-r from-brand-blue to-blue-700 hover:from-blue-700 hover:to-blue-800'
+                }`}
               >
-                {isLoading ? 'Processing payment...' : 'Pay now with Razorpay'}
+                {isLoading 
+                  ? 'Processing...' 
+                  : (checkoutCourse && Number(checkoutCourse.price ?? 0) === 0 
+                      ? '🎉 Enroll for Free' 
+                      : 'Pay now with Razorpay')}
               </button>
 
               <p className="text-xs text-slate-500 text-center leading-relaxed">

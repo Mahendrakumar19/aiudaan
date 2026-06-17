@@ -1,5 +1,7 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+
 interface WhatsAppButtonProps {
   phone?: string
   message?: string
@@ -9,6 +11,11 @@ export default function WhatsAppButton({
   phone = '918985025794',
   message = ''
 }: WhatsAppButtonProps) {
+  const pathname = usePathname()
+
+  if (pathname?.startsWith('/admin')) {
+    return null
+  }
   const encodedMessage = encodeURIComponent(message)
   const url = `https://wa.me/${phone}${message ? `?text=${encodedMessage}` : ''}`
 

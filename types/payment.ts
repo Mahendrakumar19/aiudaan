@@ -14,6 +14,7 @@ export interface RegistrationData {
   class?: string
   aiDomain?: string
   courseId?: number
+  moodleUsername?: string // Moodle username (may differ from email)
 }
 
 export interface PlanType {
@@ -90,4 +91,5 @@ export interface EmailPayload {
   plan: string
   amount: number
   orderId: string
+  bootcampType?: string
 }

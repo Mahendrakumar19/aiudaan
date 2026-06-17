@@ -10,6 +10,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 import {
   verifyRazorpaySignature,
   storeRegistration,
@@ -50,11 +51,17 @@ export async function POST(request: NextRequest) {
     const userData = body.userData || {}
     const email = body.email || userData.email
     const name = body.name || userData.name
-    const mobile = body.mobile || userData.mobile || userData.phone
+    let mobile = body.mobile || userData.mobile || userData.phone
+    if (!mobile || !mobile.trim()) {
+      mobile = '9999999999'
+    }
     const plan = body.plan || userData.plan
     const bootcampType = body.bootcampType || userData.bootcampType || 'online'
     const courseId = body.courseId || userData.courseId
+    const moodleUsername = body.moodleUsername || userData.moodleUsername
     const isMoodleCourse = plan === 'moodle_course'
+    // Prefer moodleUsername for Moodle lookups; fall back to email
+    const moodleLookupKey = moodleUsername || email
 
     // Validate inputs
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
@@ -127,7 +134,26 @@ export async function POST(request: NextRequest) {
     }
     let planKey = 'moodle_course'
 
-    if (!isMoodleCourse) {
+    if (isMoodleCourse) {
+      if (courseId) {
+        const numericId = Number(courseId)
+        let dbCourse = null
+        if (!isNaN(numericId)) {
+          dbCourse = await prisma.course.findUnique({
+            where: { moodleId: numericId }
+          })
+        }
+        if (!dbCourse) {
+          dbCourse = await prisma.course.findUnique({
+            where: { id: String(courseId) }
+          })
+        }
+        if (dbCourse) {
+          planDetails.price = dbCourse.price
+          planDetails.name = dbCourse.title
+        }
+      }
+    } else {
       // Get plan details for amount based on bootcampType and plan
       let resolvedPlanKey: 'basic' | 'standard' | 'online' = 'basic'
       
@@ -181,12 +207,12 @@ export async function POST(request: NextRequest) {
     // Trigger Moodle Course Auto-Enrollment if applicable
     if (isMoodleCourse && courseId) {
       try {
-        console.log(`Triggering Moodle enrollment for ${email} in course ${courseId}`)
-        const enrolRes = await enrollMoodleUserInCourse(email, parseInt(courseId))
+        console.log(`Triggering Moodle enrollment for ${moodleLookupKey} in course ${courseId}`)
+        const enrolRes = await enrollMoodleUserInCourse(moodleLookupKey, parseInt(courseId))
         if (!enrolRes.success) {
           console.error(`❌ Moodle Course Auto-Enrollment failed: ${enrolRes.error}`)
         } else {
-          console.log(`✅ Moodle Course Auto-Enrollment succeeded for ${email} in course ${courseId}`)
+          console.log(`✅ Moodle Course Auto-Enrollment succeeded for ${moodleLookupKey} in course ${courseId}`)
         }
       } catch (enrolErr) {
         console.error('Failed to trigger Moodle enrollment:', enrolErr)

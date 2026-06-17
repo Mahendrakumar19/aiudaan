@@ -57,6 +57,7 @@ export function useAuth() {
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
+      throw err
     } finally {
       setLoading(false)
     }
@@ -86,6 +87,7 @@ export function useAuth() {
       router.push('/dashboard')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
+      throw err
     } finally {
       setLoading(false)
     }

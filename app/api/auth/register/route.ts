@@ -29,14 +29,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Create user in Moodle LMS first
-    const moodleResult = await createMoodleUser(email, password, name)
-    if (!moodleResult.success) {
-      logger.error(`Moodle registration failed: ${moodleResult.error}`)
-      return NextResponse.json(
-        { message: `Moodle LMS signup failed: ${moodleResult.error}` },
-        { status: 500 }
-      )
+    // Create user in Moodle LMS (non-blocking fallback)
+    try {
+      const moodleResult = await createMoodleUser(email, password, name)
+      if (!moodleResult.success) {
+        logger.warn(`Moodle registration failed (continuing local registration): ${moodleResult.error}`)
+      }
+    } catch (moodleErr) {
+      logger.error('Moodle registration exception (continuing local registration):', moodleErr)
     }
 
     // Hash password and create user locally
