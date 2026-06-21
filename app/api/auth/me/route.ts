@@ -39,17 +39,19 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Overlay details from Moodle
+    // Overlay details from Moodle (skip for central admin account)
     let name = user.name
     let moodleUsername: string | undefined = undefined
-    try {
-      const moodleRes = await getMoodleUser(user.email)
-      if (moodleRes.success && moodleRes.user) {
-        name = moodleRes.user.fullname || `${moodleRes.user.firstname} ${moodleRes.user.lastname || ''}`.trim() || user.name
-        moodleUsername = moodleRes.user.username // e.g. 'mahi'
+    if (user.email !== 'admin@aiudaanbootcamp.com') {
+      try {
+        const moodleRes = await getMoodleUser(user.email)
+        if (moodleRes.success && moodleRes.user) {
+          name = moodleRes.user.fullname || `${moodleRes.user.firstname} ${moodleRes.user.lastname || ''}`.trim() || user.name
+          moodleUsername = moodleRes.user.username // e.g. 'mahi'
+        }
+      } catch (moodleError) {
+        logger.error('Failed to overlay Moodle details in /api/auth/me', moodleError)
       }
-    } catch (moodleError) {
-      logger.error('Failed to overlay Moodle details in /api/auth/me', moodleError)
     }
 
     // Return user data without password

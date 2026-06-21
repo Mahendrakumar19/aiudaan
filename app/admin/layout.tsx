@@ -17,9 +17,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const email = localStorage.getItem('adminEmail')
     const password = localStorage.getItem('adminPassword')
-    if (!email || !password) {
+    const moodleToken = localStorage.getItem('moodleToken')
+
+    if (!email || (!password && !moodleToken)) {
       router.push('/admin')
+      return
+    }
+
+    // CMS Dashboard routes (site administration) require hardcoded administrator account credentials
+    if (pathname && pathname.startsWith('/admin/cms-dashboard')) {
+      if (email === 'admin@aiudaanbootcamp.com') {
+        setAuthorized(true)
+      } else {
+        alert('Access Denied: CMS Dashboard requires central administrator credentials.')
+        router.push('/admin/dashboard')
+      }
     } else {
+      // General dashboard / LMS routes can be accessed by both Moodle administrators and website admin
       setAuthorized(true)
     }
   }, [router, pathname])

@@ -140,13 +140,19 @@ export async function POST(request) {
     };
 
     console.log('Creating course in Moodle:', courseData);
-    const result = await createCourse(courseData);
-    const createdCourse = Array.isArray(result) && result[0] ? result[0] : result;
+    let moodleCourseId = null;
+    try {
+      const result = await createCourse(courseData);
+      const createdCourse = Array.isArray(result) && result[0] ? result[0] : result;
+      moodleCourseId = createdCourse?.id || null;
+    } catch (moodleError) {
+      console.warn('⚠️ Moodle course creation failed or skipped due to token permission limits:', moodleError.message);
+    }
 
     console.log('Creating course locally in Hostinger DB...');
     const localDbCourse = await prisma.course.create({
       data: {
-        moodleId: createdCourse.id,
+        moodleId: moodleCourseId,
         title: title || courseData.fullname,
         description: description || courseData.summary,
         price: parseFloat(price) || 0,
@@ -162,7 +168,9 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       data: mapDbCourseToUI(localDbCourse),
-      message: 'Course created successfully in both Moodle and Hostinger DB',
+      message: moodleCourseId 
+        ? 'Course created successfully in both Moodle and Hostinger DB'
+        : 'Course created locally in Hostinger DB (Moodle sync skipped due to permissions)',
     });
   } catch (error) {
     console.error('Error creating course:', error);

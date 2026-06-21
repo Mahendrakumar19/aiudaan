@@ -25,8 +25,21 @@ export default function CheckoutPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const [userData, setUserData] = useState<RegistrationData | null>(null)
   const [checkoutCourse, setCheckoutCourse] = useState<any | null>(null)
+  const [plans, setPlans] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    // Fetch dynamic plans from API instead of hardcoding
+    fetch('/api/payments/plans')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.plans) {
+          setPlans(data.plans)
+        }
+      })
+      .catch(err => console.error('Failed to load plans:', err))
+  }, [])
 
   useEffect(() => {
     // 1. Check if Moodle Course checkout is active
@@ -314,16 +327,18 @@ export default function CheckoutPage() {
                   </span>
                 </div>
 
-                <div className="flex justify-between items-center pt-4">
+                 <div className="flex justify-between items-center pt-4">
                   <span className="text-lg font-bold text-slate-950">Amount to pay</span>
                   <span className="text-3xl font-black text-brand-blue">
                     {checkoutCourse 
                       ? (Number(checkoutCourse.price ?? 0) === 0 
                           ? <span className="text-emerald-600">FREE</span>
                           : `₹${Number(checkoutCourse.price).toLocaleString('en-IN')}`)
-                      : (userData.plan === 'standard' 
-                        ? '₹2,499' 
-                        : (userData.plan === 'online' ? '₹499' : '₹999'))}
+                      : (() => {
+                          const planKey = userData.bootcampType === 'online' ? 'online' : (userData.plan === 'standard' ? 'standard' : 'basic')
+                          const price = plans?.[planKey]?.price
+                          return price !== undefined ? `₹${Number(price).toLocaleString('en-IN')}` : '...'
+                        })()}
                   </span>
                 </div>
               </div>

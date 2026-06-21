@@ -363,13 +363,14 @@ export default function ModuleViewerPage() {
     <div className="min-h-screen bg-white flex flex-col">
       {/* ── Top Nav ─────────────────────────────────────────────────── */}
       <nav className="sticky top-0 z-40 bg-white border-b border-slate-200 flex items-center gap-3 px-4 md:px-6 py-3">
-        {/* Mobile sidebar toggle */}
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="md:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition"
+          className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 transition focus:outline-none"
+          title={sidebarOpen ? "Close Sidebar" : "Open Sidebar"}
         >
-          ☰
+          {sidebarOpen ? '✕' : '☰'}
         </button>
+        <span className="text-slate-300 hidden md:inline">|</span>
 
         <Link href={`/learn/${courseId}`} className="flex items-center gap-1.5 text-slate-500 hover:text-slate-900 text-sm transition">
           <span>←</span>
@@ -398,62 +399,58 @@ export default function ModuleViewerPage() {
         )}
 
         {/* ── Sidebar ───────────────────────────────────────────────── */}
-        <aside className={`
-          fixed md:relative top-0 left-0 h-full z-40 md:z-auto
-          w-72 bg-slate-900 border-r border-slate-800
-          flex flex-col overflow-y-auto
-          transform transition-transform md:transform-none
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}>
-          {/* Sidebar header */}
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
-            <Link
-              href={`/learn/${courseId}`}
-              className="text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wider transition"
-            >
-              ← All Sections
-            </Link>
-            <button onClick={() => setSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-slate-300 text-xl">
-              ✕
-            </button>
-          </div>
+        {sidebarOpen && (
+          <aside className="fixed md:relative top-0 left-0 h-full z-40 md:z-auto w-72 bg-slate-900 border-r border-slate-800 flex flex-col overflow-y-auto">
+            {/* Sidebar header */}
+            <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+              <Link
+                href={`/learn/${courseId}`}
+                className="text-slate-300 hover:text-white text-xs font-bold uppercase tracking-wider transition"
+              >
+                ← All Sections
+              </Link>
+              <button onClick={() => setSidebarOpen(false)} className="md:hidden text-slate-500 hover:text-slate-300 text-xl">
+                ✕
+              </button>
+            </div>
 
-          {/* Section / module list */}
-          <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
-            {sections.map((section: any, sIdx: number) => {
-              const visibleMods = (section.modules || []).filter((m: any) => m.visible !== 0 && m.modname !== 'label')
-              if (visibleMods.length === 0) return null
-              return (
-                <div key={section.id}>
-                  <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-3 py-2">
-                    {section.name || `Section ${sIdx + 1}`}
-                  </p>
-                  {visibleMods.map((m: any) => {
-                    const isActive = String(m.id) === String(moduleId)
-                    const isDone = m.completiondata?.state === 1 || m.completiondata?.state === 2
-                    return (
-                      <Link
-                        key={m.id}
-                        href={`/learn/${courseId}/${m.id}`}
-                        onClick={() => setSidebarOpen(false)}
-                        className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg text-xs transition mb-0.5 ${
-                          isActive
-                            ? 'bg-[#3462AE]/20 text-[#93b4f4]'
-                            : 'hover:bg-slate-800/50 text-slate-400 hover:text-slate-200'
-                        }`}
-                      >
-                        <span className="mt-0.5 shrink-0">
-                          {isDone ? <span className="text-emerald-400">✓</span> : '○'}
-                        </span>
-                        <span className="leading-snug">{m.name}</span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
-        </aside>
+            {/* Section / module list */}
+            <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+              {sections.map((section: any, sIdx: number) => {
+                const visibleMods = (section.modules || []).filter((m: any) => m.visible !== 0 && m.modname !== 'label')
+                if (visibleMods.length === 0) return null
+                return (
+                  <div key={section.id}>
+                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest px-3 py-2">
+                      {section.name || `Section ${sIdx + 1}`}
+                    </p>
+                    {visibleMods.map((m: any) => {
+                      const isActive = String(m.id) === String(moduleId)
+                      const isDone = m.completiondata?.state === 1 || m.completiondata?.state === 2
+                      return (
+                        <Link
+                          key={m.id}
+                          href={`/learn/${courseId}/${m.id}`}
+                          onClick={() => setSidebarOpen(false)}
+                          className={`flex items-start gap-2.5 px-3 py-2.5 rounded-lg text-xs transition mb-0.5 ${
+                            isActive
+                              ? 'bg-[#3462AE]/20 text-[#93b4f4]'
+                              : 'hover:bg-slate-800/50 text-slate-400 hover:text-slate-200'
+                          }`}
+                        >
+                          <span className="mt-0.5 shrink-0">
+                            {isDone ? <span className="text-emerald-400">✓</span> : '○'}
+                          </span>
+                          <span className="leading-snug">{m.name}</span>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                )
+              })}
+            </div>
+          </aside>
+        )}
 
         {/* ── Content Area ──────────────────────────────────────────── */}
         <main className="flex-1 overflow-y-auto">
